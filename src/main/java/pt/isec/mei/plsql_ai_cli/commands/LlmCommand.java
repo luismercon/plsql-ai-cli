@@ -31,9 +31,6 @@ public class LlmCommand {
 
         // Step 5: Get list of procedures and let user choose by number
         String procedureName = userInteractionService.promptForProcedure();
-        /*if (procedureName.startsWith("Invalid") || procedureName.startsWith("No SQL")) {
-            return procedureName; // Return error message @todo handle more gracefully
-        }*/
 
         return ollamaService.analyze(type, modelId, procedureName, approach, promptType);
     }
