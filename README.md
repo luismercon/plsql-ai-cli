@@ -8,6 +8,33 @@ This project is a command-line interface (CLI) tool tailored for Informix PL/SQL
 - **Required Ollama models downloaded** (see [Ollama Model Search](https://ollama.com/search) for available models)
 - **Ollama service running** at `http://localhost:11434`
 - **Java 17+** and **Maven** installed
+- **Procedures folder** with at least one `.sql` file in the root directory
+
+## Setup
+
+### Procedures Folder
+Before running the `analyze` or `list` commands, you **must** create a `procedures` folder in the project root directory and add your PL/SQL files:
+
+1. Create a `procedures` folder in the root directory (same level as `pom.xml`)
+2. Add one or more `.sql` files containing your PL/SQL stored procedures to this folder
+
+**Example structure:**
+```
+plsql-ai-cli/
+├── procedures/
+│   ├── procedure1.sql
+│   ├── procedure2.sql
+│   └── procedure3.sql
+├── pom.xml
+├── README.md
+└── ...
+```
+
+The application will automatically validate that:
+- The `procedures` folder exists in the root directory
+- At least one `.sql` file is present in the folder
+
+If validation fails, you'll receive a clear error message with instructions on how to fix it.
 
 ## Configuration
 Configure Ollama in `src/main/resources/application.properties`:
@@ -38,8 +65,10 @@ java -jar target/plsql-ai-cli.jar
 ```
 
 ### Main Commands
-- **list**: List available PL/SQL procedures
-- **analyze**: Analyze a procedure (guided prompts for approach, type, model, and file)
+- **list**: List available PL/SQL procedures (validates procedures folder first)
+- **analyze**: Analyze a procedure (validates procedures folder, then provides guided prompts for approach, type, model, and file)
+
+Both commands automatically validate that the `procedures` folder exists and contains at least one `.sql` file before execution.
 
 Results are saved in the `results/` directory as Markdown files.
 
@@ -92,6 +121,7 @@ Change port in `application.properties` or use `OLLAMA_PORT` env variable.
 - **OllamaService**: Handles prompt construction and LLM interaction
 - **UserInteractionService**: Manages CLI prompts and user input
 - **OllamaConfig**: Allows runtime selection of two Ollama models; defaults are set in `application.properties`
+- **ProceduresFolderValidator**: Validates that the procedures folder exists and contains SQL files before command execution
 
 ## Security
 - Ollama runs locally; no external API calls

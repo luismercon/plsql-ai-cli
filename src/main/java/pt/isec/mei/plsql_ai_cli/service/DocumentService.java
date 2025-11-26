@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 public class DocumentService {
 
     public String readRawProcedure(String fileName, String approach, String type) {
-        String subfolder = determineSubfolder(approach, type);
+        //String subfolder = determineSubfolder(approach, type);
 
         try {
-            String filePath = String.format("src/main/resources/procedures/%s/%s.sql", subfolder, fileName);
+            String filePath = String.format("procedures/%s.sql", fileName);
             Path path = Paths.get(filePath);
             if (!Files.exists(path)) {
                 throw new RuntimeException("Procedure file not found: " + filePath);
@@ -186,7 +186,7 @@ public class DocumentService {
 
         log.info("Listing available SPL/SQL files ...");
 
-        File proceduresDir = new File("src/main/resources/procedures/A");
+        File proceduresDir = new File("procedures");
 
         if (!proceduresDir.exists() || !proceduresDir.isDirectory()) {
             return "Procedures directory not found";
