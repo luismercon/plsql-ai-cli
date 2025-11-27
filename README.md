@@ -3,10 +3,20 @@
 ## Overview
 This project is a command-line interface (CLI) tool tailored for Informix PL/SQL stored procedures. It enables analysis, documentation, and modernization using local AI models via Ollama. The app supports code cleaning, business rule extraction, and procedural flow documentation, with results saved in Markdown format.
 
+The application includes a **"dirty" option** that introduces fake/noisy comments into procedures for testing how well AI models handle inaccurate documentation. For more details, see [DIRTY_PROCEDURE_IMPLEMENTATION.md](DIRTY_PROCEDURE_IMPLEMENTATION.md).
+
 ## Prerequisites
 - **Ollama installed** on your machine
-- **Required Ollama models downloaded** (see [Ollama Model Search](https://ollama.com/search) for available models)
 - **Ollama service running** at `http://localhost:11434`
+- **Default Ollama models installed**:
+  - `qwen3-coder:30b` (Model A)
+  - `deepseek-coder-v2:16b` (Model B)
+  
+  Install them with:
+  ```cmd
+  ollama pull qwen3-coder:30b
+  ollama pull deepseek-coder-v2:16b
+  ```
 - **Java 17+** and **Maven** installed
 - **Procedures folder** with at least one `.sql` file in the root directory
 
@@ -37,21 +47,46 @@ The application will automatically validate that:
 If validation fails, you'll receive a clear error message with instructions on how to fix it.
 
 ## Configuration
-Configure Ollama in `src/main/resources/application.properties`:
+
+The application is configured in two places:
+
+### Ollama Base URL
+Configure the Ollama connection in `src/main/resources/application.properties`:
 ```properties
 spring.ai.ollama.base-url=http://localhost:11434
-spring.ai.ollama.chat.options.model=qwen3-coder:30b
-spring.ai.ollama.chat.options.temperature=0.7
-spring.ai.ollama.chat.options.top-p=0.9
 ```
-The values in `application.properties` are the default model and settings. The application supports using two models at the same time, which can be set in `OllamaConfig.java`.
+
+### Models Configuration
+The application uses two models simultaneously, configured in `src/main/java/pt/isec/mei/plsql_ai_cli/config/OllamaConfig.java`:
+
+**Model A (qwen3-coder:30b):**
+- Temperature: 0.7
+- Top-P: 0.9
+
+**Model B (deepseek-coder-v2:16b):**
+- Temperature: 0.7
+- Top-P: 0.9
+
+You can modify the models, temperature, and top-p values in `OllamaConfig.java` according to your needs.
 
 ## Starting Ollama
-Before using the CLI, ensure Ollama is running:
-```cmd
-ollama list
-ollama serve
-```
+Before using the CLI, you **must ensure**:
+
+1. **Ollama is running:**
+   ```cmd
+   ollama serve
+   ```
+
+2. **Required models are installed** (verify with `ollama list`):
+   ```cmd
+   ollama list
+   ```
+   
+   If models are missing, install them:
+   ```cmd
+   ollama pull qwen3-coder:30b
+   ollama pull deepseek-coder-v2:16b
+   ```
 
 ## Usage
 
@@ -72,12 +107,9 @@ Both commands automatically validate that the `procedures` folder exists and con
 
 Results are saved in the `results/` directory as Markdown files.
 
-## Directory Structure
-- `src/main/resources/procedures/A` — Place `.sql` files here
-- `results/` — Output analysis and documentation
 
 ## Using Different Models
-To change the Ollama model, update `application.properties` or set the models in `OllamaConfig.java` for runtime selection. Download models from [Ollama Model Search](https://ollama.com/search):
+To change the Ollama models, edit the `OllamaConfig.java` file and modify the model names in the `@Bean` methods for `MODEL_A` and `MODEL_B`. Download models from [Ollama Model Search](https://ollama.com/search):
 ```cmd
 ollama pull <model-name>
 ```
@@ -90,6 +122,12 @@ ollama pull deepseek-coder-v2:16b
 - **Low (0.1-0.3):** Deterministic
 - **Medium (0.5-0.7):** Balanced
 - **High (0.8-1.0):** Creative
+
+## Top-P Settings
+Top-P (nucleus sampling) controls the diversity of the model's output by limiting the cumulative probability of tokens considered:
+- **Low (0.1-0.3):** Very focused, only most likely tokens
+- **Medium (0.5-0.7):** Balanced selection
+- **High (0.8-1.0):** More diverse, considers a wider range of tokens
 
 ## Troubleshooting
 
@@ -117,10 +155,10 @@ taskkill /PID <PID> /F
 Change port in `application.properties` or use `OLLAMA_PORT` env variable.
 
 ## Service Architecture
-- **DocumentService**: Reads, cleans, and lists procedures; saves results
+- **DocumentService**: Reads, cleans, and lists procedures; saves results; supports "dirty" procedure generation with fake comments
 - **OllamaService**: Handles prompt construction and LLM interaction
 - **UserInteractionService**: Manages CLI prompts and user input
-- **OllamaConfig**: Allows runtime selection of two Ollama models; defaults are set in `application.properties`
+- **OllamaConfig**: Configures two Ollama models (Model A and Model B) with their respective temperature and top-p settings
 - **ProceduresFolderValidator**: Validates that the procedures folder exists and contains SQL files before command execution
 
 ## Security

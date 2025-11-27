@@ -1,4 +1,4 @@
-HELP.md
+
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -37,3 +37,6 @@ src/main/resources/procedures/
 
 # Ignore results directory
 results/
+
+# Ignore procedures directory
+procedures/

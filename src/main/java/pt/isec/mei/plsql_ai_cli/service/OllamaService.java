@@ -26,8 +26,8 @@ import java.util.Objects;
 @Slf4j
 public class OllamaService {
 
-    private final ChatModel qwenModel;
-    private final ChatModel llamaModel;
+    private final ChatModel modelA;
+    private final ChatModel modelB;
     private final DocumentService documentService;
 
     @Value("classpath:prompts/single-shot-template.st")
@@ -44,9 +44,9 @@ public class OllamaService {
 
 
     @Autowired
-    public OllamaService(@Qualifier("qwenChatModel") ChatModel qwenModel, @Qualifier("llamaChatModel") ChatModel llamaModel, DocumentService documentService) {
-        this.qwenModel = qwenModel;
-        this.llamaModel = llamaModel;
+    public OllamaService(@Qualifier("MODEL_A") ChatModel modelA, @Qualifier("MODEL_B") ChatModel modelB, DocumentService documentService) {
+        this.modelA = modelA;
+        this.modelB = modelB;
         this.documentService = documentService;
     }
 
@@ -104,27 +104,27 @@ public class OllamaService {
 
     private String getCodeBasedOnApproach(String approach, String type, String procedureName) {
         return switch (approach) {
-            case "technique" -> documentService.cleanCommentsService(procedureName, approach, type);
-            case "noise" -> codeRouter(type, approach, procedureName);
-            default -> codeRouter(type, approach, procedureName);
+            case "technique" -> documentService.cleanCommentsService(procedureName);
+            case "noise" -> codeRouter(type, procedureName);
+            default -> codeRouter(type, procedureName);
         };
     }
 
-    private String codeRouter(String type, String approach, String procedureName) {
+    private String codeRouter(String type, String procedureName) {
         return switch (type) {
-            case "clean" -> documentService.cleanCommentsService(procedureName, approach, type);
-            case "raw" -> documentService.readRawProcedure(procedureName, approach, type);
-            case "dirty" -> documentService.readDirtyProcedure(procedureName, approach, type);
-            default -> documentService.cleanCommentsService(procedureName, approach, type);
+            case "clean" -> documentService.cleanCommentsService(procedureName);
+            case "raw" -> documentService.readRawProcedure(procedureName);
+            case "dirty" -> documentService.readDirtyProcedure(procedureName);
+            default -> documentService.cleanCommentsService(procedureName);
         };
     }
 
     private ChatModel chooseModel(String modelId) {
         log.info("Choosing model for modelId: {}", modelId);
         return switch (modelId) {
-            case "A" -> qwenModel;
-            case "B" -> llamaModel;
-            default -> qwenModel;
+            case "A" -> modelA;
+            case "B" -> modelB;
+            default -> modelA;
         };
     }
 

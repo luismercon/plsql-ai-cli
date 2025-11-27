@@ -76,16 +76,16 @@ public class UserInteractionService {
             System.out.println("3. Chain of Thought");
             String typeChoice = lineReader.readLine("Enter choice (1-3): ").trim();
             String result = switch (typeChoice) {
-                case "1" -> PromptType.ZERO_SHOT.getType();
+                case "1" -> PromptType.SINGLE_SHOT.getType();
                 case "2" -> PromptType.FEW_SHOT.getType();
                 case "3" -> PromptType.CHAIN_OF_THOUGHT.getType();
-                default -> PromptType.ZERO_SHOT.getType();
+                default -> PromptType.SINGLE_SHOT.getType();
             };
             log.debug("User selected prompt type: {}", result);
             return result;
         } else {
             log.debug("Approach is not technique, defaulting prompt type to: ss");
-            return PromptType.ZERO_SHOT.getType(); // default for noise
+            return PromptType.SINGLE_SHOT.getType(); // default for noise
         }
     }
 
@@ -112,12 +112,12 @@ public class UserInteractionService {
      */
     public String promptForProcedure() {
         LineReader lineReader = createLineReader();
-        File proceduresDir = new File("src/main/resources/procedures/A");
+        File proceduresDir = new File("procedures");
         File[] files = proceduresDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".sql"));
 
         if (files == null || files.length == 0) {
-            log.warn("No SQL procedures found in directory: {}", proceduresDir.getAbsolutePath());
-            return "No SQL procedures found";
+            log.error("No SQL procedures found in directory: {}", proceduresDir.getAbsolutePath());
+            throw new IllegalStateException("No SQL procedures found in directory: " + proceduresDir.getAbsolutePath());
         }
 
         List<String> procedureNames = Arrays.stream(files)
@@ -137,12 +137,12 @@ public class UserInteractionService {
                 log.debug("User selected procedure: {}", selectedProcedure);
                 return selectedProcedure;
             } else {
-                log.warn("Invalid procedure number selected: {}", choice);
-                return "Invalid procedure number";
+                log.error("Invalid procedure number selected: {}", choice);
+                throw new IllegalArgumentException("Invalid procedure number: " + choice + ". Please select a number between 1 and " + procedureNames.size());
             }
         } catch (NumberFormatException e) {
-            log.warn("Invalid input for procedure selection: {}", procedureChoice);
-            return "Invalid input. Please enter a number.";
+            log.error("Invalid input for procedure selection: {}", procedureChoice);
+            throw new IllegalArgumentException("Invalid input. Please enter a number.", e);
         }
     }
 

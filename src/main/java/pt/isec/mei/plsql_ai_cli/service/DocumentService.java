@@ -2,11 +2,11 @@ package pt.isec.mei.plsql_ai_cli.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pt.isec.mei.plsql_ai_cli.enums.AnalysisType;
 import pt.isec.mei.plsql_ai_cli.enums.Approach;
 import pt.isec.mei.plsql_ai_cli.enums.Model;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
+import pt.isec.mei.plsql_ai_cli.utils.FakeComments;
 import pt.isec.mei.plsql_ai_cli.utils.StringUtils;
 
 import java.io.File;
@@ -19,14 +19,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class DocumentService {
 
-    public String readRawProcedure(String fileName, String approach, String type) {
-        //String subfolder = determineSubfolder(approach, type);
+    public String readRawProcedure(String fileName) {
 
         try {
             String filePath = String.format("procedures/%s.sql", fileName);
@@ -40,28 +40,9 @@ public class DocumentService {
         }
     }
 
-    private String determineSubfolder(String approach, String type) {
 
-        if (Approach.TECHNIQUE.getValue().equals(StringUtils.normalizeToLower(approach))) {
-            return Model.A.name();
-        }
-
-        if (Approach.NOISE.getValue().equals(StringUtils.normalizeToLower(approach))) {
-            List<String> bTypes = List.of(AnalysisType.DIRTY.getType());
-            List<String> aTypes = List.of(AnalysisType.CLEAN.getType(), AnalysisType.RAW.getType());
-            if (bTypes.contains(StringUtils.normalizeToLower(type))) {
-                return Model.B.name();
-            }
-            if (aTypes.contains(StringUtils.normalizeToLower(type))) {
-                return Model.A.name();
-            }
-        }
-
-        return Model.A.name();
-    }
-
-    public String cleanCommentsService(String fileName, String approach, String type) {
-        String rawProcedure = readRawProcedure(fileName, approach, type);
+    public String cleanCommentsService(String fileName) {
+        String rawProcedure = readRawProcedure(fileName);
 
         // Remove block comments enclosed in { }
         String cleaned = rawProcedure.replaceAll("\\{[^}]*}", "");
@@ -79,9 +60,129 @@ public class DocumentService {
         return cleaned;
     }
 
-    public String readDirtyProcedure(String fileName, String approach, String type) {
-        // This reads the dirty procedure based on approach and type rules
-        return readRawProcedure(fileName, approach, type);
+    public String readDirtyProcedure(String fileName) {
+        return readDirtyProcedure(fileName, 0.3);
+    }
+
+    /**
+     * Reads a procedure and creates a "dirty" version by replacing comments with fake ones.
+     *
+     * @param fileName The name of the procedure file
+     * @param replacementRatio The ratio of comments to replace (0.0 to 1.0)
+     * @return The dirty procedure content with some comments replaced
+     */
+    public String readDirtyProcedure(String fileName,  double replacementRatio) {
+        String rawProcedure = readRawProcedure(fileName);
+        return makeDirtyVersion(rawProcedure, replacementRatio);
+    }
+
+    /**
+     * Creates a dirty version of SQL code by replacing some comments with fake comments.
+     * Handles both single-line comments (--) and block comments ({...}).
+     *
+     * @param sqlContent The original SQL content
+     * @param replacementRatio The ratio of comments to replace (0.0 to 1.0, default 0.3)
+     * @return The SQL content with some comments replaced
+     */
+    private String makeDirtyVersion(String sqlContent, double replacementRatio) {
+        if (replacementRatio <= 0 || replacementRatio > 1.0) {
+            replacementRatio = 0.3; // Default to 30%
+        }
+
+        StringBuilder result = new StringBuilder();
+        String[] lines = sqlContent.split("\n", -1);
+        Random random = new Random();
+        int fakeCommentIndex = 0;
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+
+            // Handle single-line comments (-- comments)
+            if (trimmedLine.startsWith("--")) {
+                String comment = trimmedLine.substring(2).trim();
+
+                // Only replace comments with more than 5 characters
+                if (comment.length() > 5) {
+                    // Decide whether to replace this comment based on ratio
+                    if (random.nextDouble() < replacementRatio) {
+                        // Get leading whitespace to maintain indentation
+                        String leadingWhitespace = line.substring(0, line.indexOf("--"));
+
+                        // Replace with a fake comment
+                        String fakeComment = FakeComments.getCommentAt(
+                                fakeCommentIndex % FakeComments.getPoolSize()
+                        );
+
+                        // Ensure the fake comment starts with --
+                        if (!fakeComment.startsWith("--")) {
+                            fakeComment = "-- " + fakeComment;
+                        }
+
+                        result.append(leadingWhitespace).append(fakeComment).append("\n");
+                        fakeCommentIndex++;
+                        continue;
+                    }
+                }
+            }
+
+            // Handle block comments ({...})
+            if (trimmedLine.startsWith("{")) {
+                // Check if it's a multi-line block comment
+                if (!trimmedLine.endsWith("}")) {
+                    // Multi-line block comment
+                    result.append(line).append("\n");
+                    i++; // Move to next line
+
+                    // Process lines inside the block comment
+                    while (i < lines.length) {
+                        String blockLine = lines[i];
+                        String trimmedBlockLine = blockLine.trim();
+
+                        // Check if we've reached the end of the block comment
+                        if (trimmedBlockLine.contains("}")) {
+                            result.append(blockLine).append("\n");
+                            break;
+                        }
+
+                        // Only process non-empty lines with substantial content
+                        if (trimmedBlockLine.length() > 5 && !trimmedBlockLine.matches("^[-=]+$")) {
+                            // Decide whether to replace this line based on ratio
+                            if (random.nextDouble() < replacementRatio) {
+                                // Get leading whitespace
+                                String leadingWhitespace = blockLine.substring(
+                                        0,
+                                        Math.min(blockLine.length(), blockLine.length() - blockLine.trim().length())
+                                );
+
+                                String fakeComment = FakeComments.getCommentAt(
+                                        fakeCommentIndex % FakeComments.getPoolSize()
+                                );
+
+                                // Remove leading -- if present (since it's inside a block comment)
+                                if (fakeComment.startsWith("--")) {
+                                    fakeComment = fakeComment.substring(2).trim();
+                                }
+
+                                result.append(leadingWhitespace).append(fakeComment).append("\n");
+                                fakeCommentIndex++;
+                                i++;
+                                continue;
+                            }
+                        }
+
+                        result.append(blockLine).append("\n");
+                        i++;
+                    }
+                    continue;
+                }
+            }
+
+            // Keep the line as is
+            result.append(line).append("\n");
+        }
+
+        return result.toString();
     }
 
     public String saveDocumentationToMarkdown(ProcedureDocumentation doc,
@@ -213,22 +314,22 @@ public class DocumentService {
 
         // Rule: if approach is "noise" and modelId is "A", save in results/noise/A/{procedureName}
         if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/noise/A/%s", normalizedProcedureName);
+            return String.format("results/noise/MODEL_A/%s", normalizedProcedureName);
         }
 
         // Rule: if approach is "noise" and modelId is "B", save in results/noise/B/{procedureName}
         if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/noise/B/%s", normalizedProcedureName);
+            return String.format("results/noise/MODEL_B/%s", normalizedProcedureName);
         }
 
         // Rule: if approach is "technique" and modelId is "A", save in results/technique/A/{procedureName}
         if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/technique/A/%s", normalizedProcedureName);
+            return String.format("results/technique/MODEL_A/%s", normalizedProcedureName);
         }
 
         // Rule: if approach is "technique" and modelId is "B", save in results/technique/B/{procedureName}
         if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/technique/B/%s", normalizedProcedureName);
+            return String.format("results/technique/MODEL_B/%s", normalizedProcedureName);
         }
 
         // Default fallback

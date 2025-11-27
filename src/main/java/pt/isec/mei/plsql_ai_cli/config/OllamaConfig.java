@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OllamaConfig {
-    @Bean("qwenChatModel")
+    @Bean("MODEL_A")
     public ChatModel qwenChatModel(OllamaApi ollamaApi) {
         return OllamaChatModel.builder()
                 .ollamaApi(ollamaApi)
@@ -23,7 +23,7 @@ public class OllamaConfig {
                 .build();
     }
 
-    @Bean("llamaChatModel")
+    @Bean("MODEL_B")
     public ChatModel llamaChatModel(OllamaApi ollamaApi) {
         return OllamaChatModel.builder()
                 .ollamaApi(ollamaApi)

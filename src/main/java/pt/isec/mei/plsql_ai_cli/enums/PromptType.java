@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum PromptType {
-    ZERO_SHOT("ss"),
+    SINGLE_SHOT("ss"),
     FEW_SHOT("fs"),
     CHAIN_OF_THOUGHT("cot");
 
