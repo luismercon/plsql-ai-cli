@@ -16,8 +16,9 @@ public class OllamaConfig {
                 .defaultOptions(
                         OllamaChatOptions.builder()
                                 .model("qwen3-coder:30b")
-                                .temperature(0.7)
+                                .temperature(0.4)
                                 .topP(0.9)
+                                .topK(50)
                                 .build()
                 )
                 .build();
@@ -30,8 +31,9 @@ public class OllamaConfig {
                 .defaultOptions(
                         OllamaChatOptions.builder()
                                 .model("deepseek-coder-v2:16b")
-                                .temperature(0.7)
+                                .temperature(0.4)
                                 .topP(0.9)
+                                .topK(50)
                                 .build()
                 )
                 .build();
