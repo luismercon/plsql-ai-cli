@@ -76,7 +76,7 @@
         <dependency>
             <groupId>me.tongfei</groupId>
             <artifactId>progressbar</artifactId>
-            <version>0.10.2</version>
+            <version>0.10.1</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
