@@ -5,10 +5,10 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum PromptType {
-    SINGLE_SHOT("ss"),
-    FEW_SHOT("fs"),
-    CHAIN_OF_THOUGHT("cot");
+public enum NoiseLevel {
+    CLEAN("clean"),
+    RAW("raw"),
+    DIRTY("dirty");
 
     private final String type;
 }

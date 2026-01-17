@@ -6,9 +6,9 @@ import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import pt.isec.mei.plsql_ai_cli.enums.AnalysisType;
+import pt.isec.mei.plsql_ai_cli.enums.NoiseLevel;
 import pt.isec.mei.plsql_ai_cli.enums.Approach;
-import pt.isec.mei.plsql_ai_cli.enums.PromptType;
+import pt.isec.mei.plsql_ai_cli.enums.PromptStrategy;
 
 import java.io.File;
 import java.util.Arrays;
@@ -50,16 +50,16 @@ public class UserInteractionService {
             System.out.println("3. dirty");
             String typeChoice = lineReader.readLine("Enter choice (1-3): ").trim();
             String result = switch (typeChoice) {
-                case "1" -> AnalysisType.CLEAN.getType();
-                case "2" -> AnalysisType.RAW.getType();
-                case "3" -> AnalysisType.DIRTY.getType();
-                default -> AnalysisType.CLEAN.getType();
+                case "1" -> NoiseLevel.CLEAN.getType();
+                case "2" -> NoiseLevel.RAW.getType();
+                case "3" -> NoiseLevel.DIRTY.getType();
+                default -> NoiseLevel.CLEAN.getType();
             };
             log.debug("User selected type: {}", result);
             return result;
         } else {
             log.debug("Approach is not noise, defaulting type to: clean");
-            return AnalysisType.CLEAN.getType(); // default for technique
+            return NoiseLevel.CLEAN.getType(); // default for technique
         }
     }
 
@@ -75,16 +75,16 @@ public class UserInteractionService {
             System.out.println("3. Chain of Thought");
             String typeChoice = lineReader.readLine("Enter choice (1-3): ").trim();
             String result = switch (typeChoice) {
-                case "1" -> PromptType.SINGLE_SHOT.getType();
-                case "2" -> PromptType.FEW_SHOT.getType();
-                case "3" -> PromptType.CHAIN_OF_THOUGHT.getType();
-                default -> PromptType.SINGLE_SHOT.getType();
+                case "1" -> PromptStrategy.SINGLE_SHOT.getType();
+                case "2" -> PromptStrategy.FEW_SHOT.getType();
+                case "3" -> PromptStrategy.CHAIN_OF_THOUGHT.getType();
+                default -> PromptStrategy.SINGLE_SHOT.getType();
             };
             log.debug("User selected prompt type: {}", result);
             return result;
         } else {
             log.debug("Approach is not technique, defaulting prompt type to: ss");
-            return PromptType.SINGLE_SHOT.getType(); // default for noise
+            return PromptStrategy.SINGLE_SHOT.getType(); // default for noise
         }
     }
 
