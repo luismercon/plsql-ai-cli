@@ -3,7 +3,6 @@ package pt.isec.mei.plsql_ai_cli.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.isec.mei.plsql_ai_cli.enums.Approach;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
 import pt.isec.mei.plsql_ai_cli.utils.FakeComments;
@@ -196,7 +195,7 @@ public class DocumentService {
                                               String type,
                                               String promptType) throws IOException {
 
-        String resultsPath = pathRouter(approach, procedureName);
+        String resultsPath = pathRouter(procedureName);
         Path resultsDir = Paths.get(resultsPath);
 
         // Create results directory if it doesn't exist
@@ -207,7 +206,7 @@ public class DocumentService {
         // Generate filename based on approach
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
-        String fileName = determineFileName(approach, type, promptType, timestamp);
+        String fileName = determineFileName(type, promptType, timestamp);
         Path filePath = resultsDir.resolve(fileName);
 
         // Build markdown content
@@ -309,39 +308,19 @@ public class DocumentService {
         return "Available PL/SQL files:\n" + String.join("\n", fileNames);
     }
 
-    private String pathRouter(String approach, String procedureName) {
-        String normalizedApproach = StringUtils.normalizeToLower(approach);
+    private String pathRouter(String procedureName) {
         String normalizedProcedureName = StringUtils.normalizeToLower(procedureName);
 
-        // Rule: if approach is "noise", save in results/noise/{procedureName}
-        if (Approach.NOISE.getValue().equals(normalizedApproach)) {
-            return String.format("results/noise/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "technique", save in results/technique/{procedureName}
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach)) {
-            return String.format("results/technique/%s", normalizedProcedureName);
-        }
-
-        // Default fallback
-        return "results";
+        // New structure: results/{procedureName}
+        return String.format("results/%s", normalizedProcedureName);
     }
 
-    private String determineFileName(String approach, String type, String promptType, String timestamp) {
-        String normalizedApproach = StringUtils.normalizeToLower(approach);
+    private String determineFileName(String type, String promptType, String timestamp) {
+        String normalizedType = StringUtils.normalizeToLower(type);
+        String normalizedPromptType = StringUtils.normalizeToLower(promptType);
 
-        // Rule: if approach is "noise", use type in filename
-        if (Approach.NOISE.getValue().equals(normalizedApproach)) {
-            return type + "_" + timestamp + ".md";
-        }
-
-        // Rule: if approach is "technique", use promptType in filename
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach)) {
-            return promptType + "_" + timestamp + ".md";
-        }
-
-        // Default fallback
-        return type + "_" + timestamp + ".md";
+        // New naming pattern: {promptStrategy}_{noiseLevel}_{timestamp}.md
+        return normalizedPromptType + "_" + normalizedType + "_" + timestamp + ".md";
     }
 }
 
