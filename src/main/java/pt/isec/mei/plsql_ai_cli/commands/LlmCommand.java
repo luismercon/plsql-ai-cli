@@ -31,13 +31,10 @@ public class LlmCommand {
         // Step 3: Ask for promptType (only if approach is technique)
         String promptType = userInteractionService.promptForPromptType(approach);
 
-        // Step 4: Ask for modelId (using letters A/B)
-        String modelId = userInteractionService.promptForModel();
-
-        // Step 5: Get list of procedures and let user choose by number
+        // Step 4: Get list of procedures and let user choose by number
         String procedureName = userInteractionService.promptForProcedure();
 
-        return ollamaService.analyze(type, modelId, procedureName, approach, promptType);
+        return ollamaService.analyze(type, procedureName, approach, promptType);
     }
 
 

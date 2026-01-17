@@ -96,6 +96,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Force all JLine dependencies to use the same version -->
+            <dependency>
+                <groupId>org.jline</groupId>
+                <artifactId>jline-terminal</artifactId>
+                <version>3.30.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jline</groupId>
+                <artifactId>jline-native</artifactId>
+                <version>3.30.4</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

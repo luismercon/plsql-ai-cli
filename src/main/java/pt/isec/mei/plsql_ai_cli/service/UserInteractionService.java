@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import pt.isec.mei.plsql_ai_cli.enums.AnalysisType;
 import pt.isec.mei.plsql_ai_cli.enums.Approach;
-import pt.isec.mei.plsql_ai_cli.enums.Model;
 import pt.isec.mei.plsql_ai_cli.enums.PromptType;
 
 import java.io.File;
@@ -89,23 +88,6 @@ public class UserInteractionService {
         }
     }
 
-    /**
-     * Prompt user to select a model (A or B)
-     */
-    public String promptForModel() {
-        LineReader lineReader = createLineReader();
-        System.out.println("\nSelect model:");
-        System.out.println("A. Model A");
-        System.out.println("B. Model B");
-        String modelId = lineReader.readLine("Enter choice (A or B): ").trim().toUpperCase();
-        if (!modelId.equals(Model.A.name()) && !modelId.equals(Model.B.name())) {
-            modelId = Model.A.name(); // default
-            log.debug("Invalid model selection, defaulting to: A");
-        } else {
-            log.debug("User selected model: {}", modelId);
-        }
-        return modelId;
-    }
 
     /**
      * Prompt user to select a procedure from available SQL files

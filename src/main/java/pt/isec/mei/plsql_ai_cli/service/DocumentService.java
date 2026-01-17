@@ -1,9 +1,9 @@
 package pt.isec.mei.plsql_ai_cli.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.isec.mei.plsql_ai_cli.enums.Approach;
-import pt.isec.mei.plsql_ai_cli.enums.Model;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
 import pt.isec.mei.plsql_ai_cli.utils.FakeComments;
@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DocumentService {
+
+    @Value("${spring.ai.ollama.chat.options.model}")
+    private String modelName;
 
     public String readRawProcedure(String fileName) {
 
@@ -188,13 +191,12 @@ public class DocumentService {
     public String saveDocumentationToMarkdown(ProcedureDocumentation doc,
                                               long processingTimeMs,
                                               TokensData tokensData,
-                                              String modelId,
                                               String approach,
                                               String procedureName,
                                               String type,
                                               String promptType) throws IOException {
 
-        String resultsPath = pathRouter(approach, modelId, procedureName);
+        String resultsPath = pathRouter(approach, procedureName);
         Path resultsDir = Paths.get(resultsPath);
 
         // Create results directory if it doesn't exist
@@ -218,7 +220,7 @@ public class DocumentService {
         markdown.append("prompt_tokens: ").append(tokensData.promptTokens()).append("\n");
         markdown.append("completion_tokens: ").append(tokensData.completionTokens()).append("\n");
         markdown.append("total_tokens: ").append(tokensData.totalTokens()).append("\n");
-        markdown.append("Model_ID: ").append(modelId == null ? "default" : modelId).append("\n");
+        markdown.append("model: ").append(modelName).append("\n");
         markdown.append("---\n\n");
 
         // Add procedure documentation content
@@ -307,29 +309,18 @@ public class DocumentService {
         return "Available PL/SQL files:\n" + String.join("\n", fileNames);
     }
 
-    private String pathRouter(String approach, String modelId, String procedureName) {
+    private String pathRouter(String approach, String procedureName) {
         String normalizedApproach = StringUtils.normalizeToLower(approach);
-        String normalizedModelId = StringUtils.normalizeToUpper(modelId);
         String normalizedProcedureName = StringUtils.normalizeToLower(procedureName);
 
-        // Rule: if approach is "noise" and modelId is "A", save in results/noise/A/{procedureName}
-        if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/noise/MODEL_A/%s", normalizedProcedureName);
+        // Rule: if approach is "noise", save in results/noise/{procedureName}
+        if (Approach.NOISE.getValue().equals(normalizedApproach)) {
+            return String.format("results/noise/%s", normalizedProcedureName);
         }
 
-        // Rule: if approach is "noise" and modelId is "B", save in results/noise/B/{procedureName}
-        if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/noise/MODEL_B/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "technique" and modelId is "A", save in results/technique/A/{procedureName}
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/technique/MODEL_A/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "technique" and modelId is "B", save in results/technique/B/{procedureName}
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/technique/MODEL_B/%s", normalizedProcedureName);
+        // Rule: if approach is "technique", save in results/technique/{procedureName}
+        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach)) {
+            return String.format("results/technique/%s", normalizedProcedureName);
         }
 
         // Default fallback
