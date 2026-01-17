@@ -5,10 +5,10 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum AnalysisType {
-    CLEAN("clean"),
-    RAW("raw"),
-    DIRTY("dirty");
+public enum PromptStrategy {
+    SINGLE_SHOT("ss"),
+    FEW_SHOT("fs"),
+    CHAIN_OF_THOUGHT("cot");
 
     private final String type;
 }

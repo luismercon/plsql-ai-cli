@@ -1,0 +1,463 @@
+C:\Users\lcvargas\.jdks\temurin-21.0.5\bin\java.exe -XX:TieredStopAtLevel=1 -Dspring.output.ansi.enabled=always -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true "-Dmanagement.endpoints.jmx.exposure.include=*" "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2022.1.3\lib\idea_rt.jar=57539" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath C:\ISEC-repos\Dissertation\plsql-ai-cli\target\classes;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-starter-model-ollama\1.1.0\spring-ai-starter-model-ollama-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\boot\spring-boot-starter\3.5.7\spring-boot-starter-3.5.7.jar;C:\Users\lcvargas\.m2\repository\org\springframework\boot\spring-boot\3.5.7\spring-boot-3.5.7.jar;C:\Users\lcvargas\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.5.7\spring-boot-autoconfigure-3.5.7.jar;C:\Users\lcvargas\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.5.7\spring-boot-starter-logging-3.5.7.jar;C:\Users\lcvargas\.m2\repository\ch\qos\logback\logback-classic\1.5.20\logback-classic-1.5.20.jar;C:\Users\lcvargas\.m2\repository\ch\qos\logback\logback-core\1.5.20\logback-core-1.5.20.jar;C:\Users\lcvargas\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\lcvargas\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\lcvargas\.m2\repository\org\slf4j\jul-to-slf4j\2.0.17\jul-to-slf4j-2.0.17.jar;C:\Users\lcvargas\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\lcvargas\.m2\repository\org\yaml\snakeyaml\2.4\snakeyaml-2.4.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-ollama\1.1.0\spring-ai-autoconfigure-model-ollama-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-retry\1.1.0\spring-ai-autoconfigure-retry-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-tool\1.1.0\spring-ai-autoconfigure-model-tool-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-chat-observation\1.1.0\spring-ai-autoconfigure-model-chat-observation-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-embedding-observation\1.1.0\spring-ai-autoconfigure-model-embedding-observation-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-ollama\1.1.0\spring-ai-ollama-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-model\1.1.0\spring-ai-model-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-commons\1.1.0\spring-ai-commons-1.1.0.jar;C:\Users\lcvargas\.m2\repository\io\micrometer\micrometer-core\1.15.5\micrometer-core-1.15.5.jar;C:\Users\lcvargas\.m2\repository\org\hdrhistogram\HdrHistogram\2.2.2\HdrHistogram-2.2.2.jar;C:\Users\lcvargas\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\lcvargas\.m2\repository\io\micrometer\context-propagation\1.1.3\context-propagation-1.1.3.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-template-st\1.1.0\spring-ai-template-st-1.1.0.jar;C:\Users\lcvargas\.m2\repository\io\micrometer\micrometer-observation\1.15.5\micrometer-observation-1.15.5.jar;C:\Users\lcvargas\.m2\repository\io\micrometer\micrometer-commons\1.15.5\micrometer-commons-1.15.5.jar;C:\Users\lcvargas\.m2\repository\org\antlr\antlr4-runtime\4.13.1\antlr4-runtime-4.13.1.jar;C:\Users\lcvargas\.m2\repository\com\github\victools\jsonschema-generator\4.38.0\jsonschema-generator-4.38.0.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\classmate\1.7.1\classmate-1.7.1.jar;C:\Users\lcvargas\.m2\repository\com\github\victools\jsonschema-module-jackson\4.38.0\jsonschema-module-jackson-4.38.0.jar;C:\Users\lcvargas\.m2\repository\com\github\victools\jsonschema-module-swagger-2\4.38.0\jsonschema-module-swagger-2-4.38.0.jar;C:\Users\lcvargas\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.30\swagger-annotations-jakarta-2.2.30.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-retry\1.1.0\spring-ai-retry-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\retry\spring-retry\2.0.12\spring-retry-2.0.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-web\6.2.12\spring-web-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-webflux\6.2.12\spring-webflux-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-beans\6.2.12\spring-beans-6.2.12.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.19.2\jackson-databind-2.19.2.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.19.2\jackson-annotations-2.19.2.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.19.2\jackson-core-2.19.2.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.19.2\jackson-datatype-jsr310-2.19.2.jar;C:\Users\lcvargas\.m2\repository\org\slf4j\slf4j-api\2.0.17\slf4j-api-2.0.17.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-chat-client\1.1.0\spring-ai-autoconfigure-model-chat-client-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-client-chat\1.1.0\spring-ai-client-chat-1.1.0.jar;C:\Users\lcvargas\.m2\repository\io\modelcontextprotocol\sdk\mcp-json-jackson2\0.16.0\mcp-json-jackson2-0.16.0.jar;C:\Users\lcvargas\.m2\repository\io\modelcontextprotocol\sdk\mcp-json\0.16.0\mcp-json-0.16.0.jar;C:\Users\lcvargas\.m2\repository\com\networknt\json-schema-validator\2.0.0\json-schema-validator-2.0.0.jar;C:\Users\lcvargas\.m2\repository\com\ethlo\time\itu\1.14.0\itu-1.14.0.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.19.2\jackson-dataformat-yaml-2.19.2.jar;C:\Users\lcvargas\.m2\repository\com\fasterxml\jackson\module\jackson-module-jsonSchema\2.19.2\jackson-module-jsonSchema-2.19.2.jar;C:\Users\lcvargas\.m2\repository\javax\validation\validation-api\1.1.0.Final\validation-api-1.1.0.Final.jar;C:\Users\lcvargas\.m2\repository\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\ai\spring-ai-autoconfigure-model-chat-memory\1.1.0\spring-ai-autoconfigure-model-chat-memory-1.1.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-starter\3.4.1\spring-shell-starter-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-autoconfigure\3.4.1\spring-shell-autoconfigure-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-core\3.4.1\spring-shell-core-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.5.7\spring-boot-starter-validation-3.5.7.jar;C:\Users\lcvargas\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.48\tomcat-embed-el-10.1.48.jar;C:\Users\lcvargas\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.3.Final\hibernate-validator-8.0.3.Final.jar;C:\Users\lcvargas\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\lcvargas\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-messaging\6.2.12\spring-messaging-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-console\3.30.4\jline-console-3.30.4.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-builtins\3.30.4\jline-builtins-3.30.4.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-reader\3.30.4\jline-reader-3.30.4.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-style\3.30.4\jline-style-3.30.4.jar;C:\Users\lcvargas\.m2\repository\org\antlr\ST4\4.3.4\ST4-4.3.4.jar;C:\Users\lcvargas\.m2\repository\org\antlr\antlr-runtime\3.5.3\antlr-runtime-3.5.3.jar;C:\Users\lcvargas\.m2\repository\commons-io\commons-io\2.20.0\commons-io-2.20.0.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-standard\3.4.1\spring-shell-standard-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-standard-commands\3.4.1\spring-shell-standard-commands-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\shell\spring-shell-table\3.4.1\spring-shell-table-3.4.1.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-context\6.2.12\spring-context-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-aop\6.2.12\spring-aop-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-expression\6.2.12\spring-expression-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\projectlombok\lombok\1.18.42\lombok-1.18.42.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-core\6.2.12\spring-core-6.2.12.jar;C:\Users\lcvargas\.m2\repository\org\springframework\spring-jcl\6.2.12\spring-jcl-6.2.12.jar;C:\Users\lcvargas\.m2\repository\io\projectreactor\reactor-core\3.7.12\reactor-core-3.7.12.jar;C:\Users\lcvargas\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\lcvargas\.m2\repository\me\tongfei\progressbar\0.10.1\progressbar-0.10.1.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-terminal\3.30.4\jline-terminal-3.30.4.jar;C:\Users\lcvargas\.m2\repository\org\jline\jline-native\3.30.4\jline-native-3.30.4.jar pt.isec.mei.plsql_ai_cli.PlsqlAiCliApplication
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.7)
+
+2026-01-17T10:06:03.934Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : Starting PlsqlAiCliApplication using Java 21.0.5 with PID 2584 (C:\ISEC-repos\Dissertation\plsql-ai-cli\target\classes started by lcvargas in C:\ISEC-repos\Dissertation\plsql-ai-cli)
+2026-01-17T10:06:03.936Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-01-17T10:06:05.217Z  WARN 2584 --- [plsql-ai-cli] [           main] org.jline                                : Unable to create a system terminal, creating a dumb terminal (enable debug logging for more information)
+2026-01-17T10:06:05.375Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : Started PlsqlAiCliApplication in 1.753 seconds (process running for 6.936)
+shell:>help
+AVAILABLE COMMANDS
+
+Built-In Commands
+       help: Display help about available commands
+       stacktrace: Display the full stacktrace of the last error.
+       clear: Clear the shell screen.
+       quit, exit: Exit the shell.
+       history: Display or save the history of previously run commands
+       version: Show version info
+       script: Read and execute commands from a file.
+
+Llm Command
+       analyze: Analyze the SQL code from the stored procedure
+       generate-batch: Generate analysis for all procedures with all PromptStrategy and NoiseLevel combinations
+       list: List all SQL files in the procedures directory
+
+
+
+shell:>generate-batch
+
+=== Batch Generation Mode ===
+This will analyze ALL procedures in the procedures/ folder
+Each procedure will be analyzed with:
+  - 3 Prompt Strategies: Single Shot, Few Shot, Chain of Thought
+  - 3 Noise Levels: Clean, Raw, Dirty
+  - Total: 9 analyses per procedure
+
+This may take a considerable amount of time...
+
+2026-01-17T10:09:00.101Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting batch generation for all procedures
+2026-01-17T10:09:00.103Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Total tasks to process: 27 (Files: 3, Combinations: 3x3=9 per file)
+2026-01-17T10:09:00.135Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 1/27: gps_at_doctransporte [ss/clean]
+Batch Analysis   0% [  ]  0/27 (0:00:00 / ?) ?/sgps_at_doctransporte [ss/clean]2026-01-17T10:09:00.156Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T10:09:00.240Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T10:09:00.256Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T10:32:47.318Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 330, total: 4426
+2026-01-17T10:32:47.318Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1427183 ms
+2026-01-17T10:32:47.347Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\ss_clean_20260117_103247.md
+2026-01-17T10:32:47.348Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 1/27 completed successfully
+2026-01-17T10:32:47.348Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 2/27: gps_at_doctransporte [ss/raw]
+Batch Analysis   3% [ ]  1/27 (0:23:47 / 10:18:27) ,0/sgps_at_doctransporte [ss2026-01-17T10:32:47.371Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T10:32:47.412Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T10:32:47.435Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T10:59:56.094Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 534, total: 4630
+2026-01-17T10:59:56.096Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1628748 ms
+2026-01-17T10:59:56.102Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{"procedureName": "gps_at_doctransporte",
+   "generalDescription": "Propose: This procedure is used to handle document transportation. It takes an argument and returns a status message.",
+   "logicalFlowSteps": [\]
+     "1. Starts a transaction.",
+     "2. Fetches load number, customer code, consignee code, and warehouse code based on the input invoice number.",
+     "3. Validates if the load number exists in gps_ship_plan table.",
+     "4. Retrieves tax registration number and company name from gps_cust_addr table.",
+     "5. Fetches customer tax ID, company name, address details, city, postal code, and country from gps_cust_addr table.",
+     "6. Fetches consignee address details, city, postal code, and country from gps_cons_addr table.",
+     "7. Fetches warehouse address details, city, postal code, and country from gps_whse_addr table.",
+     "8. Inserts a new record into gps_guiaremessa table with the retrieved data.",
+     "9. Commits the transaction if it was started within the procedure.",
+     "10. Returns a status message."
+   ],
+   "tables": [\]
+     { "tableView": "gps_ship_plan", "interactionType": "SELECT", "businessRuleEnforced": "Load number validation" },
+     { "tableView": "gps_cust_addr", "interactionType": "SELECT", "businessRuleEnforced": "Retrieving customer and company details" },
+     { "tableView": "gps_cons_addr", "interactionType": "SELECT", "businessRuleEnforced": "Retrieving consignee address details" },
+     { "tableView": "gps_whse_addr", "interactionType": "SELECT", "businessRuleEnforced": "Retrieving warehouse address details" },
+     { "tableView": "gps_guiaremessa", "interactionType": "INSERT", "businessRuleEnforced": "Inserting new record for document transportation" }
+   ],
+   "calls": [\],"businessRules": [\]}" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T10:59:56.102Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 2/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 3, column: 25] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["logicalFlowSteps"]->java.util.ArrayList[0])
+2026-01-17T10:59:56.103Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 3/27: gps_at_doctransporte [ss/dirty]
+2026-01-17T10:59:56.176Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: ss
+Batch Analysis   7% [ ]  2/27 (0:50:56 / 10:36:40) ,0/sgps_at_doctransporte [ss2026-01-17T10:59:56.212Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T10:59:56.230Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T11:28:09.741Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 534, total: 4630
+2026-01-17T11:28:09.742Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1693639 ms
+2026-01-17T11:28:09.746Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\ss_dirty_20260117_112809.md
+2026-01-17T11:28:09.747Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 3/27 completed successfully
+2026-01-17T11:28:09.747Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 4/27: gps_at_doctransporte [fs/clean]
+2026-01-17T11:28:09.750Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: fs
+2026-01-17T11:28:09.764Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Analysis  11% [ ]  3/27 (1:19:09 / 10:33:17) ,0/sgps_at_doctransporte [fs2026-01-17T11:28:09.799Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T11:59:59.561Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 741, total: 4837
+2026-01-17T11:59:59.561Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1909814 ms
+2026-01-17T11:59:59.566Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_clean_20260117_115959.md
+2026-01-17T11:59:59.566Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 4/27 completed successfully
+2026-01-17T11:59:59.566Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 5/27: gps_at_doctransporte [fs/raw]
+2026-01-17T11:59:59.603Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: fs
+Batch Analysis  14% [ ]  4/27 (1:50:59 / 10:38:11) ,0/sgps_at_doctransporte [fs2026-01-17T11:59:59.642Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T11:59:59.667Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T12:25:49.616Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 376, total: 4472
+2026-01-17T12:25:49.617Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1550050 ms
+2026-01-17T12:25:49.620Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_raw_20260117_122549.md
+2026-01-17T12:25:49.621Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 5/27 completed successfully
+2026-01-17T12:25:49.621Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 6/27: gps_at_doctransporte [fs/dirty]
+Batch Analysis  18% [ ]  5/27 (2:16:49 / 10:02:01) ,0/sgps_at_doctransporte [fs2026-01-17T12:25:49.655Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: fs
+2026-01-17T12:25:49.687Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T12:25:49.711Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T12:51:42.086Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 400, total: 4496
+2026-01-17T12:51:42.086Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1552465 ms
+2026-01-17T12:51:42.093Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_dirty_20260117_125142.md
+2026-01-17T12:51:42.093Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 6/27 completed successfully
+2026-01-17T12:51:42.093Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 7/27: gps_at_doctransporte [cot/clean]
+2026-01-17T12:51:42.095Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T12:51:42.110Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Analysis  22% [ ]  6/27 (2:42:41 / 9:29:26) ,0/sgps_at_doctransporte [cot2026-01-17T12:51:42.142Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T13:17:21.185Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 381, total: 4477
+2026-01-17T13:17:21.185Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1539092 ms
+2026-01-17T13:17:21.189Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+     "procedureName": "gps_at_doctransporte",
+     "generalDescription": "This procedure is used to create a transport document for a specific invoice. It performs various checks, retrieves necessary data, and inserts the document into the gps_guiaremessa table.",
+     "businessRules": [
+       "A transport document can only be created if the customer's tax ID is not null",
+       "The country of the delivery address must be 'PT'",
+       "The procedure checks if the invoice has already been loaded into a transport document before creating a new one"
+     ],
+     "logicalFlowSteps": [
+       "Retrieve customer's tax ID and check if it is not null",
+       "Check if the invoice has already been loaded into a transport document",
+       "Retrieve necessary data for the transport document creation",
+       "Insert the new transport document into the gps_guiaremessa table"
+     ],
+     "tables": [
+       {
+         "tableView": "gps_customer",
+         "interactionType": "SELECT",
+         "businessRuleEnforced": "Customer's tax ID must not be null"
+       },
+       {
+         "tableView": "gps_guiaremessa",
+         "interactionType": "SELECT and INSERT",
+         "businessRuleEnforced": "Check if the invoice has already been loaded into a transport document"
+       }
+     ],
+     "calls": [\]   // No calls were identified in the provided code snippet \]
+   }" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T13:17:21.189Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 7/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 27, column: 16] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["calls"]->java.util.ArrayList[0])
+2026-01-17T13:17:21.189Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 8/27: gps_at_doctransporte [cot/raw]
+2026-01-17T13:17:21.229Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: cot
+Batch Analysis  25% [ ]  7/27 (3:08:21 / 8:58:08) ,0/sgps_at_doctransporte [cot2026-01-17T13:17:21.272Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T13:17:21.294Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T13:43:19.024Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 456, total: 4552
+2026-01-17T13:43:19.024Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1557835 ms
+2026-01-17T13:43:19.027Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+     "procedureName": "gps_at_doctransporte",
+     "generalDescription": "This procedure generates a delivery note (guia de transporte) for a given invoice. It retrieves relevant data about the customer, consignee, warehouse, and other related entities. The procedure also handles exceptions and ensures data consistency within a transaction.",
+     "businessRules": [
+       "The procedure only generates a delivery note for a specific type of invoice (av_tipo).",
+       "The procedure validates if the load number (lv_load_num) exists in gps_at_documentos.",
+       "The procedure checks if the customer's tax identification number (lvm_customertaxid) is provided.",
+       "The procedure verifies if the invoice has already been processed by checking its status in gps_guiaremessa."
+     ],
+     "logicalFlowSteps": [
+       "Start a new transaction.",
+       "Validate the input arguments and retrieve relevant data from various tables.",
+       "Check if the load number exists in gps_at_documentos.",
+       "Ensure that the customer's tax identification number is provided.",
+       "Verify if the invoice has already been processed by checking its status in gps_guiaremessa.",
+       "If all conditions are met, insert a new record into gps_guiaremessa with the retrieved data.",
+       "Commit the transaction to save changes."
+     ],
+     "tables": [
+       { "tableView": "gps_at_documentos", "interactionType": "SELECT", "businessRuleEnforced": "Load number existence check" },
+       { "tableView": "gps_guiaremessa", "interactionType": "SELECT and INSERT", "businessRuleEnforced": "Invoice processing status check and data insertion" }" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T13:43:19.027Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 8/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected end-of-input: expected close marker for Array (start marker at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 19, column: 16])
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 21, column: 160] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["tables"])
+2026-01-17T13:43:19.027Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 9/27: gps_at_doctransporte [cot/dirty]
+2026-01-17T13:43:19.029Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T13:43:19.039Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T13:43:19.043Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  29% [ ]  8/27 (3:34:18 / 8:28:59) ,0/sgps_at_doctransporte [cot2026-01-17T14:13:10.643Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 733, total: 4829
+2026-01-17T14:13:10.644Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1791616 ms
+2026-01-17T14:13:10.646Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+  "procedureName": "gps_at_doctransporte",
+  "generalDescription": "This procedure is responsible for generating a document of transport for a given invoice. It performs various data retrieval, validation, and insertion operations to populate the necessary information into the 'gps_guiaremessa' table.",
+  "businessRules": [
+    "The procedure only generates documents for specific types of invoices (av_tipo = 'E' or av_tipo = 'S').",
+    "If no load number is provided, the procedure retrieves it from the 'gps_at_doc' table.",
+    "The procedure validates if the invoice exists in the 'gps_at_doc' table and checks its status.",
+    "It retrieves customer, supplier, and consignee information based on specific criteria.",
+    "The procedure sets a start time for movement as 10 minutes ahead of the current time.",
+    "If the end time is not provided or it's equal to or later than the start time, the end time is set to null."
+  ],
+  "tables": [
+    \{ "tableView": "gps_at_doc", "interactionType": "select", "businessRuleEnforced": "Retrieves load number if not provided and validates invoice existence and status." \},\
+    \{ "tableView": "gps_cabang", "interactionType": "select", "businessRuleEnforced": "Retrieves customer, supplier, and consignee information based on specific criteria." \},\
+    \{ "tableView": "gps_at_doc_detail", "interactionType": "select", "businessRuleEnforced": "Not explicitly mentioned in the code." \},\
+    \{ "tableView": "gps_guiaremessa", "interactionType": "insert", "businessRuleEnforced": "Inserts all retrieved and calculated data into this table to generate the document of transport." \}\
+  ],
+  "calls": [ "\{ "procedureName": "gps_at_doctransporte", "arguments": ["arg"] \}" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T14:13:10.646Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 9/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 13, column: 5] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["tables"])
+2026-01-17T14:13:10.647Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 10/27: gps_biaupdperiod [ss/clean]
+Batch Analysis  33% [ ]  9/27 (4:04:10 / 8:08:21) ,0/sgps_biaupdperiod [ss/clea2026-01-17T14:13:10.684Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T14:13:10.721Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T14:13:10.736Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T14:37:34.318Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4053, completion tokens: 335, total: 4388
+2026-01-17T14:37:34.318Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1463671 ms
+2026-01-17T14:37:34.335Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_clean_20260117_143734.md
+2026-01-17T14:37:34.335Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 10/27 completed successfully
+2026-01-17T14:37:34.335Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 11/27: gps_biaupdperiod [ss/raw]
+2026-01-17T14:37:34.336Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T14:37:34.350Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T14:37:34.352Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  37% [ ] 10/27 (4:28:34 / 7:36:34) ,0/sgps_biaupdperiod [ss/raw]2026-01-17T15:01:15.758Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 314, total: 4410
+2026-01-17T15:01:15.758Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1421423 ms
+2026-01-17T15:01:15.762Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_raw_20260117_150115.md
+2026-01-17T15:01:15.762Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 11/27 completed successfully
+2026-01-17T15:01:15.762Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 12/27: gps_biaupdperiod [ss/dirty]
+Batch Analysis  40% [ ] 11/27 (4:52:15 / 7:05:06) ,0/sgps_biaupdperiod [ss/dirt2026-01-17T15:01:15.813Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T15:01:15.847Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T15:01:15.866Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T15:25:27.662Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 343, total: 4439
+2026-01-17T15:25:27.662Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1451900 ms
+2026-01-17T15:25:27.666Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_dirty_20260117_152527.md
+2026-01-17T15:25:27.666Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 12/27 completed successfully
+2026-01-17T15:25:27.666Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 13/27: gps_biaupdperiod [fs/clean]
+2026-01-17T15:25:27.667Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: fs
+2026-01-17T15:25:27.677Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Analysis  44% [ ] 12/27 (5:16:27 / 6:35:34) ,0/sgps_biaupdperiod [fs/clea2026-01-17T15:25:27.702Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T15:48:58.123Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 299, total: 4395
+2026-01-17T15:48:58.124Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1410458 ms
+2026-01-17T15:48:58.126Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_clean_20260117_154858.md
+2026-01-17T15:48:58.127Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 13/27 completed successfully
+2026-01-17T15:48:58.127Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 14/27: gps_biaupdperiod [fs/raw]
+2026-01-17T15:48:58.177Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: fs
+Batch Analysis  48% [ ] 13/27 (5:39:58 / 6:06:07) ,0/sgps_biaupdperiod [fs/raw]2026-01-17T15:48:58.211Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T15:48:58.233Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T16:13:11.467Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 320, total: 4416
+2026-01-17T16:13:11.467Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1453340 ms
+2026-01-17T16:13:11.471Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_raw_20260117_161311.md
+2026-01-17T16:13:11.471Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 14/27 completed successfully
+2026-01-17T16:13:11.471Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 15/27: gps_biaupdperiod [fs/dirty]
+2026-01-17T16:13:11.514Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: fs
+Batch Analysis  51% [ ] 14/27 (6:04:11 / 5:38:10) ,0/sgps_biaupdperiod [fs/dirt2026-01-17T16:13:11.548Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T16:13:11.567Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T16:38:29.563Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 409, total: 4505
+2026-01-17T16:38:29.563Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1518091 ms
+2026-01-17T16:38:29.567Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_dirty_20260117_163829.md
+2026-01-17T16:38:29.567Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 15/27 completed successfully
+2026-01-17T16:38:29.567Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 16/27: gps_biaupdperiod [cot/clean]
+2026-01-17T16:38:29.614Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T16:38:29.646Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Analysis  55% [ ] 15/27 (6:29:29 / 5:11:35) ,0/sgps_biaupdperiod [cot/cle2026-01-17T16:38:29.665Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T17:04:55.674Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 491, total: 4587
+2026-01-17T17:04:55.674Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1586107 ms
+2026-01-17T17:04:55.676Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+     "procedureName": "gPS_BiAUpdPeriod",
+     "generalDescription": "This procedure is used to update the BiA Period for a specific customer. It takes into account various factors such as stock sales, direct sales, indent bookings, and inventory adjustments.",
+     "businessRules": [
+       "If the order type is 'EXPRESS', a surcharge is applied.",
+       "The procedure updates customers whose LAST_ACTIVITY_DATE is older than 90 days.",
+       "A new BiA Period record is created if it doesn't exist for the given customer and period."
+     ],
+     "logicalFlowSteps": [
+       "The procedure starts by defining variables and initializing them with default values.",
+       "It then checks if a BiA Period record exists for the given customer and period. If not, it creates a new one using data from the gps_customer_bia table.",
+       "Based on the order type and other factors, the procedure calculates the booked and inventory adjustments for stock, indent, direct, transit, and calloff categories.",
+       "It then updates the corresponding BiA Period record with the calculated values."
+     ],
+     "tables": [
+       {
+         "tableView": "gps_bia_period",
+         "interactionType": "update",
+         "businessRuleEnforced": "The procedure updates the BiA Period record based on the calculated booked and inventory adjustments."
+       },
+       {
+         "tableView": "gps_customer_bia",
+         "interactionType": "select",
+         "businessRuleEnforced": "If a new BiA Period record needs to be created, data is selected from this table to initialize the record."
+       },
+       {
+         "tableView": "gps_bia_orders",
+         "interactionType": "select",
+         "businessRuleEnforced": "Order type and other factors are selected from this table to calculate the booked and inventory adjustments."
+       }" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T17:04:55.676Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 16/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected end-of-input: expected close marker for Array (start marker at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 15, column: 16])
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 30, column: 9] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["tables"])
+2026-01-17T17:04:55.676Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 17/27: gps_biaupdperiod [cot/raw]
+2026-01-17T17:04:55.713Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T17:04:55.742Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T17:04:55.768Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  59% [ ] 16/27 (6:55:55 / 4:45:56) ,0/sgps_biaupdperiod [cot/raw2026-01-17T17:30:29.131Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 431, total: 4527
+2026-01-17T17:30:29.131Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1533454 ms
+2026-01-17T17:30:29.134Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{"procedureName": "gPS_BiAUpdPeriod",
+   "generalDescription": "This procedure updates a BiA period for a specific customer based on provided arguments. It handles exceptions and updates relevant tables.",
+   "logicalFlowSteps": [
+     "Checks if necessary arguments are provided.",
+     "Retrieves customer, year, and month from the input argument.",
+     "Calculates booked and invoiced quantities for different order types (stock, indent, direct, transit, calloff) based on the operation type (book or invoice).",
+     "Checks if the period already exists. If not, it initializes a new period with default values.",
+     "Updates the BiA period table with the calculated quantities.",
+     "Handles exceptions and rolls back changes in case of errors."
+   ],
+   "businessRules": [
+     "The procedure updates a specific customer's BiA period based on input arguments.",
+     "Quantities are calculated differently for booked (orders) and invoiced operations.",
+     "If the period does not exist, it is initialized with default values from the customer BIA table.",
+     "Exceptions are handled to ensure data consistency."
+   ],
+   "calls": [],  // No explicit calls in this code snippet
+   "tables": [
+     {
+       "tableView": "gps_bia_period",
+       "interactionType": "update",
+       "businessRuleEnforced": "Updates the BiA period table with calculated quantities."
+     },
+     {
+       "tableView": "gps_customer_bia",
+       "interactionType": "select",
+       "businessRuleEnforced": "Retrieves default values for a new BiA period from the customer BIA table if the period does not exist."
+     } \]}" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T17:30:29.134Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 17/27 failed: com.fasterxml.jackson.core.JsonParseException: Unexpected character ('/' (code 47)): maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 17, column: 18]
+2026-01-17T17:30:29.134Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 18/27: gps_biaupdperiod [cot/dirty]
+2026-01-17T17:30:29.135Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T17:30:29.147Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T17:30:29.150Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  62% [ ] 17/27 (7:21:29 / 4:19:41) ,0/sgps_biaupdperiod [cot/dir2026-01-17T17:54:14.061Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 306, total: 4402
+2026-01-17T17:54:14.061Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1424927 ms
+2026-01-17T17:54:14.063Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+     "procedureName": "gPS_BiAUpdPeriod",
+     "generalDescription": "This procedure updates the BiA Period for a given customer based on input arguments. It checks if a new period needs to be initialized, performs calculations and updates for booked and invoiced quantities, and handles exceptions.",
+     "businessRules": [\
+       "1. If the period does not exist, initialize it with default values from gps_customer_bia.",\
+       "2. Calculate the changes in booked and invoiced quantities based on input arguments."\
+     ],
+     "logicalFlowSteps": [\
+       "1. Check if a new period needs to be initialized.",\
+       "2. If yes, insert a new record into gps_bia_period with default values from gps_customer_bia.",\
+       "3. Update the existing or newly inserted period record in gps_bia_period with calculated changes."\
+     ],
+     "tables": [\
+       {"tableView": "gps_bia_period", "interactionType": "UPDATE", "businessRuleEnforced": "1, 2"},\
+       {"tableView": "gps_customer_bia", "interactionType": "SELECT", "businessRuleEnforced": "1"}\
+     ],
+     "calls": []\
+   }" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T17:54:14.064Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 18/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 4, column: 24] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["businessRules"]->java.util.ArrayList[0])
+2026-01-17T17:54:14.064Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 19/27: gps_bia_docchgstat [ss/clean]
+Batch Analysis  66% [ ] 18/27 (7:45:13 / 3:52:36) ,0/sgps_bia_docchgstat [ss/cl2026-01-17T17:54:14.104Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T17:54:14.143Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T17:54:14.165Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T18:19:28.125Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 413, total: 4509
+2026-01-17T18:19:28.125Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1514061 ms
+2026-01-17T18:19:28.129Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\ss_clean_20260117_181928.md
+2026-01-17T18:19:28.129Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 19/27 completed successfully
+2026-01-17T18:19:28.129Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 20/27: gps_bia_docchgstat [ss/raw]
+2026-01-17T18:19:28.168Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T18:19:28.213Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Analysis  70% [ ] 19/27 (8:10:28 / 3:26:30) ,0/sgps_bia_docchgstat [ss/ra2026-01-17T18:19:28.236Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T18:42:29.654Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 252, total: 4348
+2026-01-17T18:42:29.654Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1381525 ms
+2026-01-17T18:42:29.656Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+     "businessRules": ["Checks if the new BiA status is different from the current one"],
+     "calls": ["gPS_BiAUpdPeriod"],
+     "generalDescription": "This procedure changes the BiA status of a document and updates related tables.",
+     "logicalFlowSteps": ["Checks if the new BiA status is different from the current one", "Updates the gps_bia_docs table with the new BiA status", "Calls gPS_BiAUpdPeriod to update the BiA period"],
+     "procedureName": "gPS_BiA_DocChgStat",
+     "tables": [\
+       {"businessRuleEnforced": "Checks if the new BiA status is different from the current one", "interactionType": "Read", "tableView": "gps_bia_docs"},\
+       {"businessRuleEnforced": "Updates the gps_bia_docs table with the new BiA status", "interactionType": "Update", "tableView": "gps_bia_docs"}\
+     ]
+   }" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T18:42:29.656Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 20/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 7, column: 17] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["tables"])
+2026-01-17T18:42:29.656Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 21/27: gps_bia_docchgstat [ss/dirty]
+2026-01-17T18:42:29.657Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: ss
+2026-01-17T18:42:29.666Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-17T18:42:29.668Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  74% [ ] 20/27 (8:33:29 / 2:59:43) ,0/sgps_bia_docchgstat [ss/di2026-01-17T19:05:03.463Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 180, total: 4276
+2026-01-17T19:05:03.463Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1353807 ms
+2026-01-17T19:05:03.466Z ERROR 2584 --- [plsql-ai-cli] [           main] o.s.ai.converter.BeanOutputConverter     : Could not parse the given text to the desired target type: "{
+      "businessRules": [],
+      "calls": ["gPS_BiAUpdPeriod"],
+      "generalDescription": "Propose: This procedure is used to change the status of a document in the BiA system. It updates various tables and performs calculations based on the new status.",
+      "logicalFlowSteps": [],
+      "procedureName": "gPS_BiA_DocChgStat",
+      "tables": [\
+        \{ "businessRuleEnforced": "", "interactionType": "Update", "tableView": "gps_bia_docs" \},\
+        \{ "businessRuleEnforced": "", "interactionType": "Insert", "tableView": "gps_bia_docs" \}" into class pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation
+2026-01-17T19:05:03.466Z ERROR 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✗ Task 21/27 failed: com.fasterxml.jackson.databind.JsonMappingException: Unexpected character ('\' (code 92)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 7, column: 18] (through reference chain: pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation["tables"])
+2026-01-17T19:05:03.466Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 22/27: gps_bia_docchgstat [fs/clean]
+2026-01-17T19:05:03.514Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: fs
+Batch Analysis  77% [ ] 21/27 (8:56:03 / 2:33:09) ,0/sgps_bia_docchgstat [fs/cl2026-01-17T19:05:03.551Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T19:05:03.570Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T19:28:55.951Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 314, total: 4410
+2026-01-17T19:28:55.951Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1432485 ms
+2026-01-17T19:28:55.956Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_clean_20260117_192855.md
+2026-01-17T19:28:55.956Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 22/27 completed successfully
+2026-01-17T19:28:55.956Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 23/27: gps_bia_docchgstat [fs/raw]
+2026-01-17T19:28:55.957Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: fs
+2026-01-17T19:28:55.967Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T19:28:55.970Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  81% [ ] 22/27 (9:19:55 / 2:07:15) ,0/sgps_bia_docchgstat [fs/ra2026-01-17T19:53:19.397Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 352, total: 4448
+2026-01-17T19:53:19.397Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1463441 ms
+2026-01-17T19:53:19.412Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_raw_20260117_195319.md
+2026-01-17T19:53:19.412Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 23/27 completed successfully
+2026-01-17T19:53:19.412Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 24/27: gps_bia_docchgstat [fs/dirty]
+2026-01-17T19:53:19.450Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: fs
+Batch Analysis  85% [ ] 23/27 (9:44:19 / 1:41:37) ,0/sgps_bia_docchgstat [fs/di2026-01-17T19:53:19.480Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-17T19:53:19.500Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T20:19:22.182Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 471, total: 4567
+2026-01-17T20:19:22.182Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1562770 ms
+2026-01-17T20:19:22.186Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_dirty_20260117_201922.md
+2026-01-17T20:19:22.186Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 24/27 completed successfully
+2026-01-17T20:19:22.186Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 25/27: gps_bia_docchgstat [cot/clean]
+2026-01-17T20:19:22.227Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:clean. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T20:19:22.261Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Analysis  88% [ ] 24/27 (10:10:22 / 1:16:17) ,0/sgps_bia_docchgstat [cot/2026-01-17T20:19:22.285Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T20:46:01.388Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 515, total: 4611
+2026-01-17T20:46:01.388Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1599202 ms
+2026-01-17T20:46:01.392Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_clean_20260117_204601.md
+2026-01-17T20:46:01.393Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 25/27 completed successfully
+2026-01-17T20:46:01.393Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 26/27: gps_bia_docchgstat [cot/raw]
+2026-01-17T20:46:01.393Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:raw. Model: mistral:7b. Approach: noise. Prompt Type: cot
+2026-01-17T20:46:01.402Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T20:46:01.405Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+Batch Analysis  92% [ ] 25/27 (10:37:01 / 0:50:57) ,0/sgps_bia_docchgstat [cot/2026-01-17T21:10:46.458Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 378, total: 4474
+2026-01-17T21:10:46.458Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1485065 ms
+2026-01-17T21:10:46.463Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_raw_20260117_211046.md
+2026-01-17T21:10:46.463Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 26/27 completed successfully
+2026-01-17T21:10:46.463Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ▶ Starting task 27/27: gps_bia_docchgstat [cot/dirty]
+2026-01-17T21:10:46.498Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Starting to analyze in Ollama service. Type:dirty. Model: mistral:7b. Approach: noise. Prompt Type: cot
+Batch Analysis  96% [ ] 26/27 (11:01:46 / 0:25:27) ,0/sgps_bia_docchgstat [cot/2026-01-17T21:10:46.534Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-17T21:10:46.562Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Sending prompt to Ollama model ...
+2026-01-17T21:35:36.640Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 355, total: 4451
+2026-01-17T21:35:36.640Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Ollama response time: 1490177 ms
+2026-01-17T21:35:36.648Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_dirty_20260117_213536.md
+2026-01-17T21:35:36.648Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : ✓ Task 27/27 completed successfully
+2026-01-17T21:35:36.648Z  INFO 2584 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            :
+Batch generation completed!
+Total procedures: 3
+Total analyses: 27
+Successful: 18
+Failed: 9
+Results saved in: results/{procedure_name}/
+
+Batch generation completed!
+Total procedures: 3
+Total analyses: 27
+Successful: 18
+Failed: 9
+Results saved in: results/{procedure_name}/
+Batch Analysis 100% [=] 27/27 (11:26:36 / 0:00:00) ,0/sgps_bia_docchgstat [cot/

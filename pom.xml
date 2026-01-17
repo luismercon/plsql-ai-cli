@@ -72,6 +72,13 @@
             <artifactId>spring-shell-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/me.tongfei/progressbar -->
+        <dependency>
+            <groupId>me.tongfei</groupId>
+            <artifactId>progressbar</artifactId>
+            <version>0.10.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -88,6 +95,17 @@
                 <version>${spring-shell.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Force all JLine dependencies to use the same version -->
+            <dependency>
+                <groupId>org.jline</groupId>
+                <artifactId>jline-terminal</artifactId>
+                <version>3.30.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jline</groupId>
+                <artifactId>jline-native</artifactId>
+                <version>3.30.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

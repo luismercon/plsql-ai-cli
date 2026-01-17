@@ -8,14 +8,11 @@ The application includes a **"dirty" option** that introduces fake/noisy comment
 ## Prerequisites
 - **Ollama installed** on your machine
 - **Ollama service running** at `http://localhost:11434`
-- **Default Ollama models installed**:
-  - `qwen3-coder:30b` (Model A)
-  - `deepseek-coder-v2:16b` (Model B)
+- **Codestral 22b model installed** (recommended for best PL/SQL analysis):
   
-  Install them with:
+  Install it with:
   ```cmd
-  ollama pull qwen3-coder:30b
-  ollama pull deepseek-coder-v2:16b
+  ollama pull codestral:22b
   ```
 - **Java 17+** and **Maven** installed
 - **Procedures folder** with at least one `.sql` file in the root directory
@@ -48,26 +45,26 @@ If validation fails, you'll receive a clear error message with instructions on h
 
 ## Configuration
 
-The application is configured in two places:
+All configuration is done in `src/main/resources/application.properties`:
 
-### Ollama Base URL
-Configure the Ollama connection in `src/main/resources/application.properties`:
 ```properties
+# Ollama Base URL
 spring.ai.ollama.base-url=http://localhost:11434
+
+# Model Configuration
+spring.ai.ollama.chat.options.model=codestral:22b
+spring.ai.ollama.chat.options.temperature=0.4
+spring.ai.ollama.chat.options.top-p=0.9
+spring.ai.ollama.chat.options.top-k=50
 ```
 
-### Models Configuration
-The application uses two models simultaneously, configured in `src/main/java/pt/isec/mei/plsql_ai_cli/config/OllamaConfig.java`:
+**Model Settings:**
+- **Model**: codestral:22b (specialized for code analysis)
+- **Temperature**: 0.4
+- **Top-P**: 0.9
+- **Top-K**: 50
 
-**Model A (qwen3-coder:30b):**
-- Temperature: 0.7
-- Top-P: 0.9
-
-**Model B (deepseek-coder-v2:16b):**
-- Temperature: 0.7
-- Top-P: 0.9
-
-You can modify the models, temperature, and top-p values in `OllamaConfig.java` according to your needs.
+You can modify any of these values in `application.properties` according to your needs.
 
 ## Starting Ollama
 Before using the CLI, you **must ensure**:
@@ -77,15 +74,14 @@ Before using the CLI, you **must ensure**:
    ollama serve
    ```
 
-2. **Required models are installed** (verify with `ollama list`):
+2. **Codestral 22b model is installed** (verify with `ollama list`):
    ```cmd
    ollama list
    ```
    
-   If models are missing, install them:
+   If the model is missing, install it:
    ```cmd
-   ollama pull qwen3-coder:30b
-   ollama pull deepseek-coder-v2:16b
+   ollama pull codestral:22b
    ```
 
 ## Usage
@@ -101,7 +97,7 @@ java -jar target/plsql-ai-cli.jar
 
 ### Main Commands
 - **list**: List available PL/SQL procedures (validates procedures folder first)
-- **analyze**: Analyze a procedure (validates procedures folder, then provides guided prompts for approach, type, model, and file)
+- **analyze**: Analyze a procedure (validates procedures folder, then provides guided prompts for approach, type, and file)
 
 Both commands automatically validate that the `procedures` folder exists and contains at least one `.sql` file before execution.
 
@@ -109,13 +105,23 @@ Results are saved in the `results/` directory as Markdown files.
 
 
 ## Using Different Models
-To change the Ollama models, edit the `OllamaConfig.java` file and modify the model names in the `@Bean` methods for `MODEL_A` and `MODEL_B`. Download models from [Ollama Model Search](https://ollama.com/search):
+To change the Ollama model, edit the `application.properties` file and modify the model name:
+```properties
+spring.ai.ollama.chat.options.model=<model-name>
+```
+
+Download models from [Ollama Model Search](https://ollama.com/search):
 ```cmd
 ollama pull <model-name>
 ```
 For example:
 ```cmd
-ollama pull deepseek-coder-v2:16b
+ollama pull llama3:8b
+```
+
+Then update `application.properties`:
+```properties
+spring.ai.ollama.chat.options.model=llama3:8b
 ```
 
 ## Temperature Settings
@@ -158,8 +164,9 @@ Change port in `application.properties` or use `OLLAMA_PORT` env variable.
 - **DocumentService**: Reads, cleans, and lists procedures; saves results; supports "dirty" procedure generation with fake comments
 - **OllamaService**: Handles prompt construction and LLM interaction
 - **UserInteractionService**: Manages CLI prompts and user input
-- **OllamaConfig**: Configures two Ollama models (Model A and Model B) with their respective temperature and top-p settings
 - **ProceduresFolderValidator**: Validates that the procedures folder exists and contains SQL files before command execution
+
+All model configuration is done through `application.properties` using Spring AI's auto-configuration.
 
 ## Security
 - Ollama runs locally; no external API calls

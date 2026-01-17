@@ -1,9 +1,8 @@
 package pt.isec.mei.plsql_ai_cli.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.isec.mei.plsql_ai_cli.enums.Approach;
-import pt.isec.mei.plsql_ai_cli.enums.Model;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
 import pt.isec.mei.plsql_ai_cli.utils.FakeComments;
@@ -25,6 +24,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DocumentService {
+
+    @Value("${spring.ai.ollama.chat.options.model}")
+    private String modelName;
 
     public String readRawProcedure(String fileName) {
 
@@ -188,13 +190,12 @@ public class DocumentService {
     public String saveDocumentationToMarkdown(ProcedureDocumentation doc,
                                               long processingTimeMs,
                                               TokensData tokensData,
-                                              String modelId,
                                               String approach,
                                               String procedureName,
                                               String type,
                                               String promptType) throws IOException {
 
-        String resultsPath = pathRouter(approach, modelId, procedureName);
+        String resultsPath = pathRouter(procedureName);
         Path resultsDir = Paths.get(resultsPath);
 
         // Create results directory if it doesn't exist
@@ -205,7 +206,7 @@ public class DocumentService {
         // Generate filename based on approach
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
-        String fileName = determineFileName(approach, type, promptType, timestamp);
+        String fileName = determineFileName(type, promptType, timestamp);
         Path filePath = resultsDir.resolve(fileName);
 
         // Build markdown content
@@ -218,7 +219,7 @@ public class DocumentService {
         markdown.append("prompt_tokens: ").append(tokensData.promptTokens()).append("\n");
         markdown.append("completion_tokens: ").append(tokensData.completionTokens()).append("\n");
         markdown.append("total_tokens: ").append(tokensData.totalTokens()).append("\n");
-        markdown.append("Model_ID: ").append(modelId == null ? "default" : modelId).append("\n");
+        markdown.append("model: ").append(modelName).append("\n");
         markdown.append("---\n\n");
 
         // Add procedure documentation content
@@ -307,50 +308,19 @@ public class DocumentService {
         return "Available PL/SQL files:\n" + String.join("\n", fileNames);
     }
 
-    private String pathRouter(String approach, String modelId, String procedureName) {
-        String normalizedApproach = StringUtils.normalizeToLower(approach);
-        String normalizedModelId = StringUtils.normalizeToUpper(modelId);
+    private String pathRouter(String procedureName) {
         String normalizedProcedureName = StringUtils.normalizeToLower(procedureName);
 
-        // Rule: if approach is "noise" and modelId is "A", save in results/noise/A/{procedureName}
-        if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/noise/MODEL_A/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "noise" and modelId is "B", save in results/noise/B/{procedureName}
-        if (Approach.NOISE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/noise/MODEL_B/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "technique" and modelId is "A", save in results/technique/A/{procedureName}
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.A.name().equals(normalizedModelId)) {
-            return String.format("results/technique/MODEL_A/%s", normalizedProcedureName);
-        }
-
-        // Rule: if approach is "technique" and modelId is "B", save in results/technique/B/{procedureName}
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach) && Model.B.name().equals(normalizedModelId)) {
-            return String.format("results/technique/MODEL_B/%s", normalizedProcedureName);
-        }
-
-        // Default fallback
-        return "results";
+        // New structure: results/{procedureName}
+        return String.format("results/%s", normalizedProcedureName);
     }
 
-    private String determineFileName(String approach, String type, String promptType, String timestamp) {
-        String normalizedApproach = StringUtils.normalizeToLower(approach);
+    private String determineFileName(String type, String promptType, String timestamp) {
+        String normalizedType = StringUtils.normalizeToLower(type);
+        String normalizedPromptType = StringUtils.normalizeToLower(promptType);
 
-        // Rule: if approach is "noise", use type in filename
-        if (Approach.NOISE.getValue().equals(normalizedApproach)) {
-            return type + "_" + timestamp + ".md";
-        }
-
-        // Rule: if approach is "technique", use promptType in filename
-        if (Approach.TECHNIQUE.getValue().equals(normalizedApproach)) {
-            return promptType + "_" + timestamp + ".md";
-        }
-
-        // Default fallback
-        return type + "_" + timestamp + ".md";
+        // New naming pattern: {promptStrategy}_{noiseLevel}_{timestamp}.md
+        return normalizedPromptType + "_" + normalizedType + "_" + timestamp + ".md";
     }
 }
 
