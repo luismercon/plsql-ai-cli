@@ -1,6 +1,9 @@
 package pt.isec.mei.plsql_ai_cli.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -11,11 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import pt.isec.mei.plsql_ai_cli.enums.NoiseLevel;
+import pt.isec.mei.plsql_ai_cli.enums.PromptStrategy;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +107,120 @@ public class OllamaService {
             return "Failed to read prompt templates: " + e.getMessage();
         }
 
+    }
+
+    /**
+     * Generate batch analysis for all procedures with all combinations of PromptStrategy and NoiseLevel
+     * @return Summary of the batch generation
+     */
+    public String generateBatch() {
+        log.info("Starting batch generation for all procedures");
+
+        // Get all SQL files from procedures folder
+        File proceduresDir = new File("procedures");
+        if (!proceduresDir.exists() || !proceduresDir.isDirectory()) {
+            return "Procedures directory not found";
+        }
+
+        File[] files = proceduresDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".sql"));
+        if (files == null || files.length == 0) {
+            return "No SQL files found in procedures directory";
+        }
+
+        // Build list of all combinations
+        List<BatchAnalysisTask> tasks = new ArrayList<>();
+        for (File file : files) {
+            String procedureName = file.getName().replaceAll("\\.sql$", "");
+
+            for (PromptStrategy strategy : PromptStrategy.values()) {
+                for (NoiseLevel noiseLevel : NoiseLevel.values()) {
+                    tasks.add(new BatchAnalysisTask(
+                        procedureName,
+                        strategy.getType(),
+                        noiseLevel.getType()
+                    ));
+                }
+            }
+        }
+
+        int totalTasks = tasks.size();
+        int successCount = 0;
+        int failureCount = 0;
+
+        log.info("Total tasks to process: {} (Files: {}, Combinations: 3x3=9 per file)", totalTasks, files.length);
+
+        // Create progress bar with speed display
+        try (ProgressBar pb = new ProgressBarBuilder()
+                .setTaskName("Batch Analysis")
+                .setInitialMax(totalTasks)
+                .setStyle(ProgressBarStyle.ASCII)
+                .setUpdateIntervalMillis(100)
+                .showSpeed()  // Show processing speed (tasks/sec)
+                .build()) {
+
+            int taskNumber = 0;
+
+            for (BatchAnalysisTask task : tasks) {
+                taskNumber++;
+
+                // Show what's starting BEFORE the long operation
+                String taskInfo = String.format("%s [%s/%s]",
+                    task.procedureName,
+                    task.promptType,
+                    task.noiseLevel);
+
+                pb.setExtraMessage(taskInfo);
+
+                log.info("▶ Starting task {}/{}: {}", taskNumber, totalTasks, taskInfo);
+
+                try {
+                    // Perform analysis (this blocks for 10-30+ seconds)
+                    analyze(task.noiseLevel, task.procedureName, "noise", task.promptType);
+                    successCount++;
+                    log.info("✓ Task {}/{} completed successfully", taskNumber, totalTasks);
+
+                } catch (Exception e) {
+                    log.error("✗ Task {}/{} failed: {}",
+                        taskNumber,
+                        totalTasks,
+                        e.getMessage());
+                    failureCount++;
+                }
+
+                pb.step();
+            }
+        }
+
+        String summary = String.format(
+            "\nBatch generation completed!\n" +
+            "Total procedures: %d\n" +
+            "Total analyses: %d\n" +
+            "Successful: %d\n" +
+            "Failed: %d\n" +
+            "Results saved in: results/{procedure_name}/",
+            files.length,
+            totalTasks,
+            successCount,
+            failureCount
+        );
+
+        log.info(summary);
+        return summary;
+    }
+
+    /**
+     * Inner class to represent a batch analysis task
+     */
+    private static class BatchAnalysisTask {
+        final String procedureName;
+        final String promptType;
+        final String noiseLevel;
+
+        BatchAnalysisTask(String procedureName, String promptType, String noiseLevel) {
+            this.procedureName = procedureName;
+            this.promptType = promptType;
+            this.noiseLevel = noiseLevel;
+        }
     }
 
     private String getCodeBasedOnApproach(String approach, String type, String procedureName) {
