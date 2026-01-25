@@ -3,6 +3,8 @@ package pt.isec.mei.plsql_ai_cli.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import pt.isec.mei.plsql_ai_cli.enums.NoiseLevel;
+import pt.isec.mei.plsql_ai_cli.enums.PromptStrategy;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureDocumentation;
 import pt.isec.mei.plsql_ai_cli.model.TokensData;
 import pt.isec.mei.plsql_ai_cli.utils.FakeComments;
@@ -16,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -29,7 +32,6 @@ public class DocumentService {
     private String modelName;
 
     public String readRawProcedure(String fileName) {
-
         try {
             String filePath = String.format("procedures/%s.sql", fileName);
             Path path = Paths.get(filePath);
@@ -42,7 +44,6 @@ public class DocumentService {
         }
     }
 
-
     public String cleanCommentsService(String fileName) {
         String rawProcedure = readRawProcedure(fileName);
 
@@ -50,7 +51,6 @@ public class DocumentService {
         String cleaned = rawProcedure.replaceAll("\\{[^}]*}", "");
 
         // Remove single-line comments starting with --
-        // This pattern handles both standalone comments and inline comments
         cleaned = cleaned.replaceAll("--[^\n]*", "");
 
         // Remove empty lines and trim whitespace
@@ -66,26 +66,11 @@ public class DocumentService {
         return readDirtyProcedure(fileName, 0.3);
     }
 
-    /**
-     * Reads a procedure and creates a "dirty" version by replacing comments with fake ones.
-     *
-     * @param fileName The name of the procedure file
-     * @param replacementRatio The ratio of comments to replace (0.0 to 1.0)
-     * @return The dirty procedure content with some comments replaced
-     */
-    public String readDirtyProcedure(String fileName,  double replacementRatio) {
+    public String readDirtyProcedure(String fileName, double replacementRatio) {
         String rawProcedure = readRawProcedure(fileName);
         return makeDirtyVersion(rawProcedure, replacementRatio);
     }
 
-    /**
-     * Creates a dirty version of SQL code by replacing some comments with fake comments.
-     * Handles both single-line comments (--) and block comments ({...}).
-     *
-     * @param sqlContent The original SQL content
-     * @param replacementRatio The ratio of comments to replace (0.0 to 1.0, default 0.3)
-     * @return The SQL content with some comments replaced
-     */
     private String makeDirtyVersion(String sqlContent, double replacementRatio) {
         if (replacementRatio <= 0 || replacementRatio > 1.0) {
             replacementRatio = 0.3; // Default to 30%
@@ -100,27 +85,17 @@ public class DocumentService {
             String line = lines[i];
             String trimmedLine = line.trim();
 
-            // Handle single-line comments (-- comments)
             if (trimmedLine.startsWith("--")) {
                 String comment = trimmedLine.substring(2).trim();
-
-                // Only replace comments with more than 5 characters
                 if (comment.length() > 5) {
-                    // Decide whether to replace this comment based on ratio
                     if (random.nextDouble() < replacementRatio) {
-                        // Get leading whitespace to maintain indentation
                         String leadingWhitespace = line.substring(0, line.indexOf("--"));
-
-                        // Replace with a fake comment
                         String fakeComment = FakeComments.getCommentAt(
                                 fakeCommentIndex % FakeComments.getPoolSize()
                         );
-
-                        // Ensure the fake comment starts with --
                         if (!fakeComment.startsWith("--")) {
                             fakeComment = "-- " + fakeComment;
                         }
-
                         result.append(leadingWhitespace).append(fakeComment).append("\n");
                         fakeCommentIndex++;
                         continue;
@@ -128,69 +103,67 @@ public class DocumentService {
                 }
             }
 
-            // Handle block comments ({...})
             if (trimmedLine.startsWith("{")) {
-                // Check if it's a multi-line block comment
                 if (!trimmedLine.endsWith("}")) {
-                    // Multi-line block comment
                     result.append(line).append("\n");
-                    i++; // Move to next line
-
-                    // Process lines inside the block comment
+                    i++;
                     while (i < lines.length) {
                         String blockLine = lines[i];
                         String trimmedBlockLine = blockLine.trim();
-
-                        // Check if we've reached the end of the block comment
                         if (trimmedBlockLine.contains("}")) {
                             result.append(blockLine).append("\n");
                             break;
                         }
-
-                        // Only process non-empty lines with substantial content
                         if (trimmedBlockLine.length() > 5 && !trimmedBlockLine.matches("^[-=]+$")) {
-                            // Decide whether to replace this line based on ratio
                             if (random.nextDouble() < replacementRatio) {
-                                // Get leading whitespace
                                 String leadingWhitespace = blockLine.substring(
                                         0,
                                         Math.min(blockLine.length(), blockLine.length() - blockLine.trim().length())
                                 );
-
                                 String fakeComment = FakeComments.getCommentAt(
                                         fakeCommentIndex % FakeComments.getPoolSize()
                                 );
-
-                                // Remove leading -- if present (since it's inside a block comment)
                                 if (fakeComment.startsWith("--")) {
                                     fakeComment = fakeComment.substring(2).trim();
                                 }
-
                                 result.append(leadingWhitespace).append(fakeComment).append("\n");
                                 fakeCommentIndex++;
                                 i++;
                                 continue;
                             }
                         }
-
                         result.append(blockLine).append("\n");
                         i++;
                     }
                     continue;
                 }
             }
-
-            // Keep the line as is
             result.append(line).append("\n");
         }
-
         return result.toString();
+    }
+
+    public void saveBatchResult(ProcedureDocumentation doc, File file, PromptStrategy strategy, NoiseLevel noise, long durationMs, TokensData tokens) {
+        String procedureName = file.getName().replace(".sql", "");
+        try {
+            saveDocumentationToMarkdown(
+                    doc,
+                    durationMs,
+                    tokens,
+                    this.modelName,
+                    procedureName,
+                    noise.getType(),
+                    strategy.getType()
+            );
+        } catch (IOException e) {
+            log.error("Failed to save batch result for {}", procedureName, e);
+        }
     }
 
     public String saveDocumentationToMarkdown(ProcedureDocumentation doc,
                                               long processingTimeMs,
                                               TokensData tokensData,
-                                              String approach,
+                                              String modelName,
                                               String procedureName,
                                               String type,
                                               String promptType) throws IOException {
@@ -198,21 +171,17 @@ public class DocumentService {
         String resultsPath = pathRouter(procedureName);
         Path resultsDir = Paths.get(resultsPath);
 
-        // Create results directory if it doesn't exist
         if (!Files.exists(resultsDir)) {
             Files.createDirectories(resultsDir);
         }
 
-        // Generate filename based on approach
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         String fileName = determineFileName(type, promptType, timestamp);
         Path filePath = resultsDir.resolve(fileName);
 
-        // Build markdown content
         StringBuilder markdown = new StringBuilder();
 
-        // Add metadata header
         markdown.append("---\n");
         markdown.append("timestamp: ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n");
         markdown.append("processing_time_s: ").append(processingTimeMs / 1000.0).append("\n");
@@ -222,7 +191,6 @@ public class DocumentService {
         markdown.append("model: ").append(modelName).append("\n");
         markdown.append("---\n\n");
 
-        // Add procedure documentation content
         markdown.append("Procedure: ").append(doc.getProcedureName()).append("\n\n");
 
         markdown.append("## General Description: ")
@@ -232,36 +200,36 @@ public class DocumentService {
 
         markdown.append("## Business Rules (SBVR format):\n\n");
         int ruleNumber = 1;
-        for (String rule : doc.getBusinessRules()) {
-            markdown.append(ruleNumber++).append(". ").append(rule).append("\n");
+        if (doc.getBusinessRules() != null) {
+            for (String rule : doc.getBusinessRules()) {
+                markdown.append(ruleNumber++).append(". ").append(rule).append("\n");
+            }
         }
 
-        markdown.append("## Logical Flow (procedural narrative):\n\n");
-        for (String step : doc.getLogicalFlowSteps()) {
-            markdown.append("- ").append(step).append("\n");
+        markdown.append("\n## Logical Flow (procedural narrative):\n\n");
+        if (doc.getLogicalFlowSteps() != null) {
+            for (String step : doc.getLogicalFlowSteps()) {
+                markdown.append("- ").append(step).append("\n");
+            }
         }
 
-        markdown.append("## Identified Dependencies:\n\n");
-
+        markdown.append("\n## Identified Dependencies:\n\n");
         markdown.append("### Tables: \n\n");
-        if (doc.getTables() != null && !doc.getTables().isEmpty()) {
-            // Create markdown table header
-            markdown.append("| Table/View | Interaction Type | Business Rule Enforced |\n");
-            markdown.append("|------------|------------------|------------------------|\n");
 
-            // Add each table dependency as a table row
+        markdown.append("| Table/View | Interaction Type | Business Rule Enforced |\n");
+        markdown.append("|------------|------------------|------------------------|\n");
+
+        if (doc.getTables() != null && !doc.getTables().isEmpty()) {
             for (ProcedureDocumentation.TableDependency table : doc.getTables()) {
                 markdown.append("| ")
-                        .append(table.getTableView() != null ? table.getTableView() : "[TABLE_NAME]")
+                        .append(table.getTableView() != null ? table.getTableView() : "N/A")
                         .append(" | ")
-                        .append(table.getInteractionType() != null ? table.getInteractionType() : "[SELECT/INSERT/UPDATE/DELETE]")
+                        .append(table.getInteractionType() != null ? table.getInteractionType() : "N/A")
                         .append(" | ")
-                        .append(table.getBusinessRuleEnforced() != null ? table.getBusinessRuleEnforced() : "[Description of business rule enforced]")
+                        .append(table.getBusinessRuleEnforced() != null ? table.getBusinessRuleEnforced() : "N/A")
                         .append(" |\n");
             }
         } else {
-            markdown.append("| Table/View | Interaction Type | Business Rule Enforced |\n");
-            markdown.append("|------------|------------------|------------------------|\n");
             markdown.append("| None | N/A | N/A |\n");
         }
         markdown.append("\n");
@@ -276,51 +244,49 @@ public class DocumentService {
         }
         markdown.append("\n");
 
-        // Write to file
         Files.writeString(filePath, markdown.toString());
 
         log.info("Documentation saved to: {}", filePath.toAbsolutePath());
         return fileName;
     }
 
+    public List<File> getAllSqlFiles() {
+        File proceduresDir = new File("procedures");
+        if (!proceduresDir.exists() || !proceduresDir.isDirectory()) {
+            return new ArrayList<>();
+        }
+        File[] files = proceduresDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".sql"));
+        if (files == null || files.length == 0) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(files);
+    }
 
     public String listSqlFiles() {
-
         log.info("Listing available SPL/SQL files ...");
-
         File proceduresDir = new File("procedures");
-
         if (!proceduresDir.exists() || !proceduresDir.isDirectory()) {
             return "Procedures directory not found";
         }
-
         File[] files = proceduresDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".sql"));
-
         if (files == null || files.length == 0) {
             return "No SQL files found";
         }
-
         List<String> fileNames = Arrays.stream(files)
                 .map(file -> "- " + file.getName().replaceAll("\\.sql$", ""))
                 .sorted()
                 .collect(Collectors.toList());
-
         return "Available PL/SQL files:\n" + String.join("\n", fileNames);
     }
 
     private String pathRouter(String procedureName) {
         String normalizedProcedureName = StringUtils.normalizeToLower(procedureName);
-
-        // New structure: results/{procedureName}
         return String.format("results/%s", normalizedProcedureName);
     }
 
     private String determineFileName(String type, String promptType, String timestamp) {
         String normalizedType = StringUtils.normalizeToLower(type);
         String normalizedPromptType = StringUtils.normalizeToLower(promptType);
-
-        // New naming pattern: {promptStrategy}_{noiseLevel}_{timestamp}.md
         return normalizedPromptType + "_" + normalizedType + "_" + timestamp + ".md";
     }
 }
-

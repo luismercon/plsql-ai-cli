@@ -1,0 +1,111 @@
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.7)
+
+2026-01-25T04:44:23.910Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : Starting PlsqlAiCliApplication using Java 21.0.5 with PID 22876 (C:\ISEC-repos\Dissertation\plsql-ai-cli\target\classes started by lcvargas in C:\ISEC-repos\Dissertation\plsql-ai-cli)
+2026-01-25T04:44:23.912Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-01-25T04:44:25.738Z  WARN 22876 --- [plsql-ai-cli] [           main] org.jline                                : Unable to create a system terminal, creating a dumb terminal (enable debug logging for more information)
+2026-01-25T04:44:25.986Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.PlsqlAiCliApplication            : Started PlsqlAiCliApplication in 2.487 seconds (process running for 19.241)
+shell:>generate-batch
+
+=== Batch Generation Mode ===
+This will analyze ALL procedures in the procedures/ folder
+Each procedure will be analyzed with:
+  - 3 Prompt Strategies: Single Shot, Few Shot, Chain of Thought
+  - 3 Noise Levels: Clean, Raw, Dirty
+  - Total: 9 analyses per procedure
+
+This may take a considerable amount of time...
+
+2026-01-25T04:44:40.071Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.s.GenerationOrchestratorService  : Starting batch generation process...
+Initializing Batch Process: 27 operations queued.
+
+Batch Gen   0% [    ]  0/27 (0:00:00 / ?) gps_at_doctransporte.sql [ss - clean]2026-01-25T04:44:40.193Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-25T05:11:30.064Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 517, total: 4613
+2026-01-25T05:11:30.094Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\ss_clean_20260125_051130.md
+2026-01-25T05:11:30.156Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen   3% [ ]  1/27 (0:26:50 / 11:37:53) gps_at_doctransporte.sql [ss - ra2026-01-25T05:36:17.227Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 383, total: 4479
+2026-01-25T05:36:17.232Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\ss_raw_20260125_053617.md
+2026-01-25T05:36:17.324Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen   7% [ ]  2/27 (0:51:37 / 10:45:19) gps_at_doctransporte.sql [ss - di2026-01-25T06:05:31.517Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 711, total: 4807
+2026-01-25T06:05:31.521Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\ss_dirty_20260125_060531.md
+2026-01-25T06:05:31.590Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  11% [ ]  3/27 (1:20:51 / 10:46:52) gps_at_doctransporte.sql [fs - cl2026-01-25T06:37:34.184Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 908, total: 5004
+2026-01-25T06:37:34.188Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_clean_20260125_063734.md
+2026-01-25T06:37:34.241Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  14% [ ]  4/27 (1:52:54 / 10:49:13) gps_at_doctransporte.sql [fs - ra2026-01-25T07:03:08.847Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 439, total: 4535
+2026-01-25T07:03:08.852Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_raw_20260125_070308.md
+2026-01-25T07:03:08.924Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  18% [ ]  5/27 (2:18:29 / 10:09:22) gps_at_doctransporte.sql [fs - di2026-01-25T07:29:52.811Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 519, total: 4615
+2026-01-25T07:29:52.815Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\fs_dirty_20260125_072952.md
+2026-01-25T07:29:52.894Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  22% [ ]  6/27 (2:45:13 / 9:38:17) gps_at_doctransporte.sql [cot - cl2026-01-25T07:59:22.659Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 726, total: 4822
+2026-01-25T07:59:22.665Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\cot_clean_20260125_075922.md
+Batch Gen  25% [ ]  7/27 (3:14:42 / 9:16:18) gps_at_doctransporte.sql [cot - ra2026-01-25T07:59:22.735Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+2026-01-25T08:26:22.944Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 549, total: 4645
+2026-01-25T08:26:22.950Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\cot_raw_20260125_082622.md
+2026-01-25T08:26:23.030Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  29% [ ]  8/27 (3:41:43 / 8:46:36) gps_at_doctransporte.sql [cot - di2026-01-25T08:49:59.176Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 297, total: 4393
+2026-01-25T08:49:59.180Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_at_doctransporte\cot_dirty_20260125_084959.md
+2026-01-25T08:49:59.244Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen  33% [  ]  9/27 (4:05:19 / 8:10:39) gps_biaupdperiod.sql [ss - clean]2026-01-25T09:15:33.029Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4053, completion tokens: 439, total: 4492
+2026-01-25T09:15:33.045Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_clean_20260125_091533.md
+2026-01-25T09:15:33.059Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen  37% [=   ] 10/27 (4:30:53 / 7:40:31) gps_biaupdperiod.sql [ss - raw]2026-01-25T09:37:47.180Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 183, total: 4279
+2026-01-25T09:37:47.184Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_raw_20260125_093747.md
+2026-01-25T09:37:47.266Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen  40% [  ] 11/27 (4:53:07 / 7:06:22) gps_biaupdperiod.sql [ss - dirty]2026-01-25T10:02:25.781Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 363, total: 4459
+2026-01-25T10:02:25.783Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\ss_dirty_20260125_100225.md
+2026-01-25T10:02:25.834Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  44% [  ] 12/27 (5:17:46 / 6:37:13) gps_biaupdperiod.sql [fs - clean]2026-01-25T10:27:59.472Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 306, total: 4402
+2026-01-25T10:27:59.472Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_clean_20260125_102759.md
+2026-01-25T10:27:59.570Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  48% [=   ] 13/27 (5:43:19 / 6:09:44) gps_biaupdperiod.sql [fs - raw]2026-01-25T10:54:33.649Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 413, total: 4509
+2026-01-25T10:54:33.656Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_raw_20260125_105433.md
+2026-01-25T10:54:33.713Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  51% [= ] 14/27 (6:09:53 / 5:43:28) gps_biaupdperiod.sql [fs - dirty]2026-01-25T11:20:02.237Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 389, total: 4485
+2026-01-25T11:20:02.242Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\fs_dirty_20260125_112002.md
+2026-01-25T11:20:02.308Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  55% [ ] 15/27 (6:35:22 / 5:16:18) gps_biaupdperiod.sql [cot - clean]2026-01-25T11:44:42.774Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 339, total: 4435
+2026-01-25T11:44:42.780Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\cot_clean_20260125_114442.md
+2026-01-25T11:44:42.792Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  59% [=  ] 16/27 (7:00:02 / 4:48:46) gps_biaupdperiod.sql [cot - raw]2026-01-25T12:08:27.055Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 269, total: 4365
+2026-01-25T12:08:27.063Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\cot_raw_20260125_120827.md
+2026-01-25T12:08:27.144Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  62% [ ] 17/27 (7:23:47 / 4:21:03) gps_biaupdperiod.sql [cot - dirty]2026-01-25T12:34:55.736Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 470, total: 4566
+2026-01-25T12:34:55.741Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_biaupdperiod\cot_dirty_20260125_123455.md
+2026-01-25T12:34:55.805Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen  66% [ ] 18/27 (7:50:15 / 3:55:07) gps_bia_docchgstat.sql [ss - clean2026-01-25T12:57:48.757Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 239, total: 4335
+2026-01-25T12:57:48.772Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\ss_clean_20260125_125748.md
+Batch Gen  70% [= ] 19/27 (8:13:08 / 3:27:38) gps_bia_docchgstat.sql [ss - raw]2026-01-25T12:57:48.858Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+2026-01-25T13:27:37.423Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 708, total: 4804
+2026-01-25T13:27:37.425Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\ss_raw_20260125_132737.md
+2026-01-25T13:27:37.488Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: ss
+Batch Gen  74% [ ] 20/27 (8:42:57 / 3:03:02) gps_bia_docchgstat.sql [ss - dirty2026-01-25T13:50:56.166Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 226, total: 4322
+2026-01-25T13:50:56.171Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\ss_dirty_20260125_135056.md
+2026-01-25T13:50:56.252Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  77% [ ] 21/27 (9:06:16 / 2:36:04) gps_bia_docchgstat.sql [fs - clean2026-01-25T14:14:50.758Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 312, total: 4408
+2026-01-25T14:14:50.763Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_clean_20260125_141450.md
+2026-01-25T14:14:50.773Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+Batch Gen  81% [= ] 22/27 (9:30:10 / 2:09:35) gps_bia_docchgstat.sql [fs - raw]2026-01-25T14:37:36.871Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 217, total: 4313
+2026-01-25T14:37:36.875Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_raw_20260125_143736.md
+Batch Gen  85% [ ] 23/27 (9:52:56 / 1:43:07) gps_bia_docchgstat.sql [fs - dirty2026-01-25T14:37:36.935Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: fs
+2026-01-25T15:01:19.158Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 275, total: 4371
+2026-01-25T15:01:19.162Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\fs_dirty_20260125_150119.md
+2026-01-25T15:01:19.237Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  88% [ ] 24/27 (10:16:39 / 1:17:04) gps_bia_docchgstat.sql [cot - cle2026-01-25T15:27:19.039Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 443, total: 4539
+2026-01-25T15:27:19.044Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_clean_20260125_152719.md
+2026-01-25T15:27:19.059Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen  92% [ ] 25/27 (10:42:39 / 0:51:24) gps_bia_docchgstat.sql [cot - raw2026-01-25T15:55:40.424Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 556, total: 4652
+2026-01-25T15:55:40.429Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_raw_20260125_155540.md
+2026-01-25T15:55:40.523Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Choosing prompt template for promptType: cot
+Batch Gen 100% [=] 27/27 (11:38:36 / 0:00:00) gps_bia_docchgstat.sql [cot - dir
+2026-01-25T16:23:16.271Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.OllamaService            : Prompt Tokens: 4096, completion tokens: 486, total: 4582
+2026-01-25T16:23:16.277Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.service.DocumentService          : Documentation saved to: C:\ISEC-repos\Dissertation\plsql-ai-cli\results\gps_bia_docchgstat\cot_dirty_20260125_162316.md
+2026-01-25T16:23:16.301Z  INFO 22876 --- [plsql-ai-cli] [           main] p.i.m.p.s.GenerationOrchestratorService  : Batch generation completed successfully.
+Batch generation initiated. Check logs and progress bar.
