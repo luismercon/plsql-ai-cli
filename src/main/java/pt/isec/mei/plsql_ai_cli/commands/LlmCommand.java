@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import pt.isec.mei.plsql_ai_cli.service.DocumentService;
+import pt.isec.mei.plsql_ai_cli.service.GenerationOrchestratorService;
 import pt.isec.mei.plsql_ai_cli.service.OllamaService;
 import pt.isec.mei.plsql_ai_cli.service.UserInteractionService;
 import pt.isec.mei.plsql_ai_cli.validator.ProceduresFolderValidator;
@@ -16,6 +17,7 @@ public class LlmCommand {
     private final DocumentService documentService;
     private final UserInteractionService userInteractionService;
     private final ProceduresFolderValidator proceduresFolderValidator;
+    private final GenerationOrchestratorService orchestratorService;
 
     @ShellMethod(key = "analyze", value = "Analyze the SQL code from the stored procedure")
     public String analyzeSqlCode() {
@@ -50,7 +52,9 @@ public class LlmCommand {
         System.out.println("  - Total: 9 analyses per procedure");
         System.out.println("\nThis may take a considerable amount of time...\n");
 
-        return ollamaService.generateBatch();
+        orchestratorService.runBatchGeneration();
+
+        return "Batch generation initiated. Check logs and progress bar.";
     }
 
     @ShellMethod(key = "list", value = "List all SQL files in the procedures directory")
@@ -60,4 +64,3 @@ public class LlmCommand {
         return documentService.listSqlFiles();
     }
 }
-
