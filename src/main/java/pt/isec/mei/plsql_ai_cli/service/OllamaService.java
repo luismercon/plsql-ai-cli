@@ -7,7 +7,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.converter.BeanOutputConverter;
-import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -212,9 +212,11 @@ public class OllamaService {
 
             Prompt userPrompt = stuffCodeInUserPrompt(code, outputConverter.getFormat(), promptTemplate);
 
-            OllamaChatOptions options = new OllamaChatOptions();
-            options.setTemperature(0.1);
-            options.setFormat("json");
+            // CORREÇÃO FINAL: Builder sem o prefixo "with"
+            OllamaOptions options = OllamaOptions.builder()
+                    .temperature(0.1) // era .withTemperature
+                    .format("json")   // era .withFormat
+                    .build();
 
             Prompt finalMountedPrompt = new Prompt(List.of(systemMessage, userPrompt.getInstructions().get(0)), options);
 

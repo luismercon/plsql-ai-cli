@@ -38,5 +38,9 @@ src/main/resources/procedures/
 # Ignore results directory
 results/
 
+# Ignore local cache files
+vectors_cache.json
+cache/
+
 # Ignore procedures directory
 procedures/
