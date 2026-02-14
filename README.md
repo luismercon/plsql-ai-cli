@@ -1,176 +1,121 @@
 # PL/SQL AI CLI
 
-## Overview
-This project is a command-line interface (CLI) tool tailored for Informix PL/SQL stored procedures. It enables analysis, documentation, and modernization using local AI models via Ollama. The app supports code cleaning, business rule extraction, and procedural flow documentation, with results saved in Markdown format.
+## Visão Geral
 
-The application includes a **"dirty" option** that introduces fake/noisy comments into procedures for testing how well AI models handle inaccurate documentation. For more details, see [DIRTY_PROCEDURE_IMPLEMENTATION.md](DIRTY_PROCEDURE_IMPLEMENTATION.md).
+Esta ferramenta de linha de comando (CLI) foi projetada especificamente para procedimentos armazenados (Stored
+Procedures) **Informix PL/SQL**. Ela permite análise, documentação e modernização utilizando modelos de IA locais via *
+*Ollama**. A aplicação suporta limpeza de código, extração de regras de negócio e documentação de fluxo procedimental,
+com resultados salvos em formato Markdown.
 
-## Prerequisites
-- **Ollama installed** on your machine
-- **Ollama service running** at `http://localhost:11434`
-- **Codestral 22b model installed** (recommended for best PL/SQL analysis):
-  
-  Install it with:
-  ```cmd
-  ollama pull codestral:22b
-  ```
-- **Java 17+** and **Maven** installed
-- **Procedures folder** with at least one `.sql` file in the root directory
+O diferencial desta ferramenta é o seu **Pipeline de Estabilidade Semântica**, que utiliza técnicas de *clustering* para
+verificar o consenso entre diferentes estratégias de *prompting* e níveis de ruído no código fonte.
 
-## Setup
+## Pré-requisitos
 
-### Procedures Folder
-Before running the `analyze` or `list` commands, you **must** create a `procedures` folder in the project root directory and add your PL/SQL files:
+* **Ollama** instalado no sistema.
+* **Serviço Ollama** em execução em `http://localhost:11434`.
+* **Modelos Recomendados** (essenciais para análise de código e semântica):
 
-1. Create a `procedures` folder in the root directory (same level as `pom.xml`)
-2. Add one or more `.sql` files containing your PL/SQL stored procedures to this folder
+```bash
+ollama pull codestral:22b        # Especializado em código
+ollama pull nomic-embed-text    # Especializado em vetorização (embeddings)
 
-**Example structure:**
-```
-plsql-ai-cli/
-├── procedures/
-│   ├── procedure1.sql
-│   ├── procedure2.sql
-│   └── procedure3.sql
-├── pom.xml
-├── README.md
-└── ...
 ```
 
-The application will automatically validate that:
-- The `procedures` folder exists in the root directory
-- At least one `.sql` file is present in the folder
+* **Java 17+** e **Maven** instalados.
+* Uma pasta chamada `procedures` com pelo menos um arquivo `.sql` no diretório raiz.
 
-If validation fails, you'll receive a clear error message with instructions on how to fix it.
+## Instalação e Configuração
 
-## Configuration
+### 1. Preparação da Pasta de Procedimentos
 
-All configuration is done in `src/main/resources/application.properties`:
+Antes de executar os comandos, você **deve** criar uma pasta `procedures` na raiz do projeto e adicionar seus arquivos
+SQL:
+
+1. Crie a pasta `procedures` no mesmo nível do arquivo `pom.xml`.
+2. Adicione os arquivos `.sql` que deseja analisar.
+
+### 2. Configuração de Modelos e Parâmetros
+
+A configuração é feita no arquivo `src/main/resources/application.properties`:
 
 ```properties
-# Ollama Base URL
+# URL Base do Ollama
 spring.ai.ollama.base-url=http://localhost:11434
-
-# Model Configuration
+# Configuração de Modelos
 spring.ai.ollama.chat.options.model=codestral:22b
+spring.ai.ollama.embedding.options.model=nomic-embed-text
+# Parâmetros de Geração
 spring.ai.ollama.chat.options.temperature=0.4
 spring.ai.ollama.chat.options.top-p=0.9
-spring.ai.ollama.chat.options.top-k=50
+
 ```
 
-**Model Settings:**
-- **Model**: codestral:22b (specialized for code analysis)
-- **Temperature**: 0.4
-- **Top-P**: 0.9
-- **Top-K**: 50
+## Como Usar os Comandos
 
-You can modify any of these values in `application.properties` according to your needs.
+Inicie a aplicação com:
 
-## Starting Ollama
-Before using the CLI, you **must ensure**:
-
-1. **Ollama is running:**
-   ```cmd
-   ollama serve
-   ```
-
-2. **Codestral 22b model is installed** (verify with `ollama list`):
-   ```cmd
-   ollama list
-   ```
-   
-   If the model is missing, install it:
-   ```cmd
-   ollama pull codestral:22b
-   ```
-
-## Usage
-
-### Start the CLI
 ```cmd
 mvnw.cmd spring-boot:run
-```
-Or, if built:
-```cmd
-java -jar target/plsql-ai-cli.jar
+
 ```
 
-### Main Commands
-- **list**: List available PL/SQL procedures (validates procedures folder first)
-- **analyze**: Analyze a procedure (validates procedures folder, then provides guided prompts for approach, type, and file)
+### Comandos Principais
 
-Both commands automatically validate that the `procedures` folder exists and contains at least one `.sql` file before execution.
-
-Results are saved in the `results/` directory as Markdown files.
-
-
-## Using Different Models
-To change the Ollama model, edit the `application.properties` file and modify the model name:
-```properties
-spring.ai.ollama.chat.options.model=<model-name>
-```
-
-Download models from [Ollama Model Search](https://ollama.com/search):
-```cmd
-ollama pull <model-name>
-```
-For example:
-```cmd
-ollama pull llama3:8b
-```
-
-Then update `application.properties`:
-```properties
-spring.ai.ollama.chat.options.model=llama3:8b
-```
-
-## Temperature Settings
-- **Low (0.1-0.3):** Deterministic
-- **Medium (0.5-0.7):** Balanced
-- **High (0.8-1.0):** Creative
-
-## Top-P Settings
-Top-P (nucleus sampling) controls the diversity of the model's output by limiting the cumulative probability of tokens considered:
-- **Low (0.1-0.3):** Very focused, only most likely tokens
-- **Medium (0.5-0.7):** Balanced selection
-- **High (0.8-1.0):** More diverse, considers a wider range of tokens
-
-## Troubleshooting
-
-### Ollama Not Responding
-- Check Ollama: `ollama list`
-- Verify URL: `http://localhost:11434`
-- Test: `curl http://localhost:11434/api/tags`
-
-### Model Not Found
-Download the required model from [Ollama Model Search](https://ollama.com/search):
-```cmd
-ollama pull <model-name>
-ollama list
-```
-
-### Port Issues (Windows)
-Find and kill the process using the port:
-```cmd
-netstat -ano | findstr :11434
-```
-Note the PID, then:
-```cmd
-taskkill /PID <PID> /F
-```
-Change port in `application.properties` or use `OLLAMA_PORT` env variable.
-
-## Service Architecture
-- **DocumentService**: Reads, cleans, and lists procedures; saves results; supports "dirty" procedure generation with fake comments
-- **OllamaService**: Handles prompt construction and LLM interaction
-- **UserInteractionService**: Manages CLI prompts and user input
-- **ProceduresFolderValidator**: Validates that the procedures folder exists and contains SQL files before command execution
-
-All model configuration is done through `application.properties` using Spring AI's auto-configuration.
-
-## Security
-- Ollama runs locally; no external API calls
-- Your code stays on your machine
+* **`list`**: Lista todos os procedimentos disponíveis na pasta `procedures`. Valida automaticamente se a pasta e os
+  arquivos existem.
+* **`analyze`**: Realiza uma análise individual e guiada. Você escolherá o arquivo, a estratégia de *prompt* e o nível
+  de ruído para gerar uma única documentação.
+* **`cluster`**: Executa o pipeline completo de análise de estabilidade.
+* Gera 9 variantes de documentação (Combinação de: *Single-Shot*, *Few-Shot*, *Chain-of-Thought* vs *Raw*, *Clean*,
+  *Dirty*).
+* Realiza a vetorização (sem o *frontmatter* para evitar ruídos).
+* Executa a deduplicação e o agrupamento (*clustering*).
+* Elege o **Medoide** (o arquivo real mais representativo) para o relatório final.
 
 ---
-For details, see the source code and comments in each service class.
+
+## Metodologia de Análise (Pipeline Semântico)
+
+A aplicação segue um rigoroso processo científico para garantir que a documentação gerada seja confiável:
+
+1. **Geração Multi-Estratégia**: O sistema gera documentações variando o Prompt e o estado do código. O estado **"Clean"
+   ** remove todos os comentários originais, enquanto o **"Dirty"** introduz ruídos para testar a resiliência da IA.
+2. **Vetorização (Embeddings)**: Utiliza o modelo `nomic-embed-text` para transformar texto em coordenadas matemáticas.
+3. **Deduplicação e Clustering**: Documentos com similaridade > 0.96 são fundidos. O sistema então agrupa as
+   interpretações. Se houver divergência lógica, múltiplos clusters são criados.
+4. **Eleição de Medoide**: Em vez de uma média aritmética (centroide), o sistema escolhe o documento **real** que está
+   no centro do cluster como representante.
+5. **Relatório**: O sistema gera um relatório final que pode serve como base para a escolha das versões de documentação
+   a ser submetida a um perito humano, acompanhado de um questionário de escala Likert (1-5) para validar a utilidade
+   das regras de negócio extraídas.
+
+---
+
+## Configurações Detalhadas de Geração
+
+### Temperatura (Temperature)
+
+* **Baixa (0.1-0.3):** Respostas determinísticas e focadas. Ideal para extração de regras de negócio.
+* **Média (0.4-0.6):** Equilíbrio entre precisão e fluidez textual.
+* **Alta (0.7-1.0):** Criativa, mas com maior risco de alucinações em lógica de código.
+
+### Top-P (Nucleus Sampling)
+
+Controla a diversidade da saída:
+
+* **Baixo (0.1-0.3):** Considera apenas os tokens mais prováveis.
+* **Alto (0.8-1.0):** Considera uma gama maior de palavras, resultando em textos menos repetitivos.
+
+## Arquitetura de Serviços
+
+* **DocumentService**: Gerencia leitura e a lógica de "limpeza" ou "sujeira" (remoção/adição de comentários).
+* **EmbeddingService**: Lida com a geração e cache de vetores semânticos.
+* **ClusteringService**: Implementa o algoritmo de agrupamento e eleição de medoides.
+* **OllamaService**: Responsável pela comunicação direta com a API local do Ollama.
+* **ReportService**: Consolida os dados estatísticos e qualitativos em relatórios Markdown em `results/reports/`.
+
+## Segurança
+
+* **100% Local**: O Ollama roda localmente; nenhum dado de código ou regra de negócio sai da sua infraestrutura.
+* **Sem APIs Externas**: Não há dependência de OpenAI, Anthropic ou outros serviços de nuvem.
