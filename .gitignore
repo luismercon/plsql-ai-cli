@@ -49,4 +49,4 @@ procedures/
 logs/
 
 # Ignore bkup directory
-bkup/
+bkp/
