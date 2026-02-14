@@ -24,98 +24,122 @@ public class ReportService {
     private static final String REPORT_DIR = "reports";
 
     public String generateAndSaveReport(List<ProcedureAnalysisResult> results) {
-        // 1. Gerar o Conteúdo do Relatório
-        String reportContent = buildReportString(results);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
 
-        // 2. Salvar no Disco
-        saveReportToFile(reportContent);
+        // 1. Gerar e Salvar Markdown (Para humanos)
+        String reportContent = buildReportString(results);
+        saveToFile(reportContent, "report_" + timestamp + ".md");
+
+        // 2. Gerar e Salvar CSV (Para análise de dados/dissertação)
+        String csvContent = buildCsvString(results);
+        saveToFile(csvContent, "summary_" + timestamp + ".csv");
 
         return reportContent;
     }
 
     private String buildReportString(List<ProcedureAnalysisResult> results) {
         StringBuilder sb = new StringBuilder();
-        sb.append("# RELATÓRIO DE ANÁLISE SEMÂNTICA (PL/SQL AI)\n"); // Usei # para Título H1
+        sb.append("# RELATÓRIO DE ANÁLISE SEMÂNTICA (SPL INFORMIX - CODESTRAL)\n");
         sb.append("**Data:** ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("  \n");
+        sb.append("**Fundamentação:** Weighted-AST & Semantic Captioning (SQL2Text)  \n");
         sb.append("---\n\n");
 
         for (ProcedureAnalysisResult res : results) {
-            sb.append("## 📂 PROCEDURE: ").append(res.procedureName()).append(" (").append(res.totalFiles()).append(" arquivos)\n");
+            double instability = 1.0 - res.interRepSimilarity();
+
+            sb.append("## 📂 PROCEDURE: ").append(res.procedureName()).append("\n");
+            sb.append(String.format("- **Total de Execuções:** %d\n", res.totalFiles()));
+            sb.append(String.format("- **Similaridade Inter-Representantes:** %.4f\n", res.interRepSimilarity()));
+            sb.append(String.format("- **Score de Instabilidade:** %.4f %s\n",
+                    instability, instability > 0.1 ? "⚠️" : "✅"));
 
             if (res.isTrivial()) {
-                sb.append("> ✅ **CASO TRIVIAL** (1 versão única). Entregar direto.\n\n");
-                continue;
-            }
-
-            // Decisão
-            sb.append(String.format("- **Similaridade Inter-Representantes:** %.2f%%\n", res.interRepSimilarity() * 100));
-
-            if ("UNANIMIDADE".equals(res.systemDecision())) {
-                sb.append("- 🤖 **DECISÃO DO SISTEMA:** UNANIMIDADE (Grupos fundidos).\n");
-                sb.append("  - ➡️ **Ação:** Enviar APENAS 1 arquivo.\n");
-                sb.append("  - 👑 **Eleito:** `").append(res.recommendedWinner().getMetadata().get("filename")).append("`\n");
+                sb.append("> ✅ **CONSENSO TOTAL:** Apenas 1 variante semântica detectada.\n\n");
             } else {
-                sb.append("- 🤖 **DECISÃO DO SISTEMA:** AMBIGUIDADE DETETADA.\n");
-                sb.append("  - ➡️ **Ação:** Enviar 2 arquivos para revisão.\n");
-                sb.append("  - 1️⃣ **Opção A:** `").append(res.recommendedWinner().getMetadata().get("filename")).append("`\n");
-                sb.append("  - 2️⃣ **Opção B:** `").append(res.alternativeOption().getMetadata().get("filename")).append("`\n");
-            }
-            sb.append("\n"); // Linha em branco para separar blocos
-
-            // Detalhes Técnicos
-            sb.append("### 📊 Detalhes Estatísticos\n");
-            for (Map.Entry<Integer, List<Document>> entry : res.clusters().entrySet()) {
-                List<Document> docs = entry.getValue();
-                RealVector centroid = calculateCentroid(docs);
-
-                // Cabeçalho do Cluster (H4)
-                sb.append("\n#### 🔷 CLUSTER ").append(entry.getKey()).append(" (").append(docs.size()).append(" documentos)\n");
-
-                // Ordenação visual
-                docs.sort((d1, d2) -> Double.compare(
-                        VectorUtils.cosineSimilarity(extractVector(d2), centroid),
-                        VectorUtils.cosineSimilarity(extractVector(d1), centroid)
-                ));
-
-                for (Document d : docs) {
-                    double score = VectorUtils.cosineSimilarity(extractVector(d), centroid);
-                    boolean isWinner = (d == res.recommendedWinner()) || (d == res.alternativeOption());
-
-                    // CORREÇÃO AQUI: Usando sintaxe de lista Markdown (- )
-                    sb.append(String.format("- %s `[%.4f]` %s **%s** (Peso: %s)\n",
-                            isWinner ? "👑" : "", // Ícone
-                            score,                // Score
-                            isWinner ? "**REPRESENTANTE**" : "", // Negrito se for líder
-                            d.getMetadata().get("filename"),     // Nome do arquivo
-                            d.getMetadata().get("cluster_weight") // Peso
-                    ));
+                sb.append(String.format("- **Decisão:** %s\n", res.systemDecision()));
+                sb.append("### 👑 Representantes Eleitos\n");
+                appendWinnerInfo(sb, "A (Principal)", res.recommendedWinner());
+                if (res.alternativeOption() != null) {
+                    appendWinnerInfo(sb, "B (Alternativa)", res.alternativeOption());
                 }
             }
-            sb.append("\n---\n\n"); // Separador horizontal entre procedures
+
+            // Detalhes dos Clusters
+            sb.append("\n### 📊 Distribuição dos Clusters\n");
+            for (Map.Entry<Integer, List<Document>> entry : res.clusters().entrySet()) {
+                sb.append(String.format("\n#### 🔷 CLUSTER %d (%d docs)\n", entry.getKey(), entry.getValue().size()));
+                for (Document d : entry.getValue()) {
+                    String filename = (String) d.getMetadata().get("filename");
+                    boolean isRep = d == res.recommendedWinner() || d == res.alternativeOption();
+                    sb.append(String.format("- %s `%s` → **Técnica:** %s\n",
+                            isRep ? "👑" : "-", filename, translateTechnique(filename)));
+                }
+            }
+            sb.append("\n---\n\n");
         }
         return sb.toString();
     }
 
-    private void saveReportToFile(String content) {
+    private String buildCsvString(List<ProcedureAnalysisResult> results) {
+        StringBuilder sb = new StringBuilder();
+        // Header do CSV
+        sb.append("procedure;total_files;similarity;instability;decision;winner_file;winner_technique\n");
+
+        for (ProcedureAnalysisResult res : results) {
+            String winnerFile = (String) res.recommendedWinner().getMetadata().get("filename");
+            sb.append(String.format("%s;%d;%.4f;%.4f;%s;%s;%s\n",
+                    res.procedureName(),
+                    res.totalFiles(),
+                    res.interRepSimilarity(),
+                    1.0 - res.interRepSimilarity(),
+                    res.systemDecision(),
+                    winnerFile,
+                    translateTechnique(winnerFile)
+            ));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Traduz o nome do arquivo para a técnica baseada na metodologia dos artigos.
+     * Ex: fs_dirty_2026... -> Few-Shot com Ruído
+     */
+    private String translateTechnique(String filename) {
+        if (filename == null) return "Unknown";
+        String fn = filename.toLowerCase();
+
+        String technique = "Unknown";
+        if (fn.startsWith("ss")) technique = "Single-Shot";
+        else if (fn.startsWith("fs")) technique = "Few-Shot";
+        else if (fn.startsWith("cot")) technique = "Chain-of-Thought";
+
+        String context = "Unknown";
+        if (fn.contains("clean")) context = "Clean Code";
+        else if (fn.contains("dirty")) context = "Legacy/Dirty Code";
+        else if (fn.contains("raw")) context = "Raw Prompt";
+
+        return technique + " (" + context + ")";
+    }
+
+    private void appendWinnerInfo(StringBuilder sb, String label, Document doc) {
+        String fname = (String) doc.getMetadata().get("filename");
+        sb.append(String.format("- **Opção %s:** `%s`  \n", label, fname));
+        sb.append(String.format("  - *Técnica:* %s  \n", translateTechnique(fname)));
+        sb.append(String.format("  - *Peso no Consenso:* %d  \n", doc.getMetadata().get("cluster_weight")));
+    }
+
+    private void saveToFile(String content, String filename) {
         try {
             Path dir = Paths.get(REPORT_DIR);
             if (!Files.exists(dir)) Files.createDirectories(dir);
-
-            String filename = "report_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm")) + ".md";
             Path file = dir.resolve(filename);
-
             Files.writeString(file, content, StandardCharsets.UTF_8);
-            log.info("Report saved to: {}", file.toAbsolutePath());
-
-            // Adiciona uma linha ao final do output de tela para avisar o usuário
-            System.out.println("\n[INFO] Relatório salvo em: " + file.toString());
-
+            System.out.println("[INFO] Arquivo salvo: " + file);
         } catch (IOException e) {
-            log.error("Failed to save report", e);
+            log.error("Erro ao salvar arquivo: {}", filename, e);
         }
     }
 
-    // Helpers repetidos (Idealmente estariam no VectorUtils, mas para rapidez ficam aqui ou lá)
     private RealVector extractVector(Document d) {
         return VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"));
     }

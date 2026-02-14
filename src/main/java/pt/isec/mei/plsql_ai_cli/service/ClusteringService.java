@@ -24,78 +24,42 @@ public class ClusteringService {
     private static final double SIMILARITY_THRESHOLD = 0.95; // Se > 95% igual entre grupos, é unânime
     private static final int K_MEANS_CLUSTERS = 2; // Queremos dividir em 2 grupos (ex: Consistente vs Alucinação)
 
-    // --- MÉTODOS PÚBLICOS (API) ---
 
     /**
      * Ponto de entrada principal. Recebe todos os documentos crus, agrupa por procedure,
      * e executa a análise completa para cada uma.
      */
     public List<ProcedureAnalysisResult> analyzeAllProcedures(List<CachedDocumentDTO> rawDocs) {
-        // 1. Agrupar por pasta (Procedure)
         Map<String, List<CachedDocumentDTO>> docsByProcedure = groupDocumentsByProcedure(rawDocs);
-        List<ProcedureAnalysisResult> results = new ArrayList<>();
-
-        // 2. Analisar cada grupo independentemente
-        for (Map.Entry<String, List<CachedDocumentDTO>> entry : docsByProcedure.entrySet()) {
-            results.add(analyzeSingleProcedure(entry.getKey(), entry.getValue()));
-        }
-        return results;
+        return docsByProcedure.entrySet().stream()
+                .map(e -> analyzeSingleProcedure(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
     }
 
     // --- ORQUESTRAÇÃO DA ANÁLISE ---
 
     private ProcedureAnalysisResult analyzeSingleProcedure(String procName, List<CachedDocumentDTO> procDocs) {
-        log.info("Analyzing procedure: {} ({} files)", procName, procDocs.size());
-
-        // ETAPA 1: Deduplicação (Soft Merge)
         List<Document> uniqueDocs = deduplicate(procDocs);
 
-        // Caso Trivial: Se só sobrou 1 (ou 0), não há clusterização a fazer
         if (uniqueDocs.size() < 2) {
-            return new ProcedureAnalysisResult(
-                    procName, procDocs.size(), uniqueDocs, true,
-                    new HashMap<>(), 0.0, "TRIVIAL",
-                    uniqueDocs.isEmpty() ? null : uniqueDocs.get(0), null
-            );
+            return new ProcedureAnalysisResult(procName, procDocs.size(), uniqueDocs, true,
+                    new HashMap<>(), 1.0, 0.0, "TRIVIAL",
+                    uniqueDocs.isEmpty() ? null : uniqueDocs.get(0), null);
         }
 
-        // ETAPA 2: Clustering K-Means
         Map<Integer, List<Document>> clusters = clusterKMeans(uniqueDocs, K_MEANS_CLUSTERS);
+        Document m0 = findMedoid(clusters.get(0));
+        Document m1 = findMedoid(clusters.get(1));
 
-        // ETAPA 3: Encontrar Representantes (Medoides)
-        Document medoid0 = findMedoid(clusters.get(0));
-        Document medoid1 = findMedoid(clusters.get(1));
+        double similarity = (m0 != null && m1 != null) ? calculateSimilarity(m0, m1) : 1.0;
+        double instability = 1.0 - similarity; // Cálculo central da Fase 4
 
-        // ETAPA 4: Tomada de Decisão (Regra de Ouro)
-        double similarity = 0.0;
-        String decision = "AMBIGUIDADE";
-        Document winner = null;
-        Document alternative = null;
+        String decision = (similarity >= SIMILARITY_THRESHOLD) ? "UNANIMIDADE" : "AMBIGUIDADE";
+        Document winner = (clusters.get(0).size() >= clusters.get(1).size()) ? m0 : m1;
+        Document alternative = (decision.equals("AMBIGUIDADE")) ? (winner == m0 ? m1 : m0) : null;
 
-        if (medoid0 != null && medoid1 != null) {
-            similarity = calculateSimilarity(medoid0, medoid1);
-
-            if (similarity >= SIMILARITY_THRESHOLD) {
-                // Se os grupos são quase idênticos, fundimos a decisão
-                decision = "UNANIMIDADE";
-                // O vencedor é o medóide do cluster maior (representa a maioria)
-                winner = (clusters.get(0).size() >= clusters.get(1).size()) ? medoid0 : medoid1;
-            } else {
-                // Se são diferentes, mantemos as duas opções
-                decision = "AMBIGUIDADE";
-                winner = medoid0;     // Opção A
-                alternative = medoid1; // Opção B
-            }
-        } else {
-            // Fallback se algo estranho acontecer (cluster vazio)
-            winner = (medoid0 != null) ? medoid0 : medoid1;
-            decision = "TRIVIAL"; // Só um cluster populado
-        }
-
-        return new ProcedureAnalysisResult(
-                procName, procDocs.size(), uniqueDocs, false,
-                clusters, similarity, decision, winner, alternative
-        );
+        return new ProcedureAnalysisResult(procName, procDocs.size(), uniqueDocs, false,
+                clusters, similarity, instability, decision, winner, alternative);
     }
 
     // --- ALGORITMOS MATEMÁTICOS ---
