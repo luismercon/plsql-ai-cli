@@ -5,39 +5,119 @@ import org.apache.commons.math3.linear.RealVector;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
 import pt.isec.mei.plsql_ai_cli.model.CachedDocumentDTO;
+import pt.isec.mei.plsql_ai_cli.model.ProcedureAnalysisResult;
 import pt.isec.mei.plsql_ai_cli.utils.VectorUtils;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class ClusteringService {
 
-    private static final double DUPLICATE_THRESHOLD = 0.96;
+    // --- CONFIGURAÇÕES DO ALGORITMO ---
+    private static final double DUPLICATE_THRESHOLD = 0.96; // Se > 96% igual, funde no mesmo documento
+    private static final double SIMILARITY_THRESHOLD = 0.95; // Se > 95% igual entre grupos, é unânime
+    private static final int K_MEANS_CLUSTERS = 2; // Queremos dividir em 2 grupos (ex: Consistente vs Alucinação)
+
+    // --- MÉTODOS PÚBLICOS (API) ---
 
     /**
-     * Agora trabalhamos com CachedDocumentDto que garante acesso ao embedding.
+     * Ponto de entrada principal. Recebe todos os documentos crus, agrupa por procedure,
+     * e executa a análise completa para cada uma.
+     */
+    public List<ProcedureAnalysisResult> analyzeAllProcedures(List<CachedDocumentDTO> rawDocs) {
+        // 1. Agrupar por pasta (Procedure)
+        Map<String, List<CachedDocumentDTO>> docsByProcedure = groupDocumentsByProcedure(rawDocs);
+        List<ProcedureAnalysisResult> results = new ArrayList<>();
+
+        // 2. Analisar cada grupo independentemente
+        for (Map.Entry<String, List<CachedDocumentDTO>> entry : docsByProcedure.entrySet()) {
+            results.add(analyzeSingleProcedure(entry.getKey(), entry.getValue()));
+        }
+        return results;
+    }
+
+    // --- ORQUESTRAÇÃO DA ANÁLISE ---
+
+    private ProcedureAnalysisResult analyzeSingleProcedure(String procName, List<CachedDocumentDTO> procDocs) {
+        log.info("Analyzing procedure: {} ({} files)", procName, procDocs.size());
+
+        // ETAPA 1: Deduplicação (Soft Merge)
+        List<Document> uniqueDocs = deduplicate(procDocs);
+
+        // Caso Trivial: Se só sobrou 1 (ou 0), não há clusterização a fazer
+        if (uniqueDocs.size() < 2) {
+            return new ProcedureAnalysisResult(
+                    procName, procDocs.size(), uniqueDocs, true,
+                    new HashMap<>(), 0.0, "TRIVIAL",
+                    uniqueDocs.isEmpty() ? null : uniqueDocs.get(0), null
+            );
+        }
+
+        // ETAPA 2: Clustering K-Means
+        Map<Integer, List<Document>> clusters = clusterKMeans(uniqueDocs, K_MEANS_CLUSTERS);
+
+        // ETAPA 3: Encontrar Representantes (Medoides)
+        Document medoid0 = findMedoid(clusters.get(0));
+        Document medoid1 = findMedoid(clusters.get(1));
+
+        // ETAPA 4: Tomada de Decisão (Regra de Ouro)
+        double similarity = 0.0;
+        String decision = "AMBIGUIDADE";
+        Document winner = null;
+        Document alternative = null;
+
+        if (medoid0 != null && medoid1 != null) {
+            similarity = calculateSimilarity(medoid0, medoid1);
+
+            if (similarity >= SIMILARITY_THRESHOLD) {
+                // Se os grupos são quase idênticos, fundimos a decisão
+                decision = "UNANIMIDADE";
+                // O vencedor é o medóide do cluster maior (representa a maioria)
+                winner = (clusters.get(0).size() >= clusters.get(1).size()) ? medoid0 : medoid1;
+            } else {
+                // Se são diferentes, mantemos as duas opções
+                decision = "AMBIGUIDADE";
+                winner = medoid0;     // Opção A
+                alternative = medoid1; // Opção B
+            }
+        } else {
+            // Fallback se algo estranho acontecer (cluster vazio)
+            winner = (medoid0 != null) ? medoid0 : medoid1;
+            decision = "TRIVIAL"; // Só um cluster populado
+        }
+
+        return new ProcedureAnalysisResult(
+                procName, procDocs.size(), uniqueDocs, false,
+                clusters, similarity, decision, winner, alternative
+        );
+    }
+
+    // --- ALGORITMOS MATEMÁTICOS ---
+
+    /**
+     * Algoritmo de Deduplicação (Soft Merge).
+     * Compara N x N documentos. Se similaridade > 0.96, funde e aumenta o peso.
      */
     public List<Document> deduplicate(List<CachedDocumentDTO> dtos) {
         if (dtos.isEmpty()) return new ArrayList<>();
 
-        log.info("--- Starting Deduplication (using DTOs) ---");
-
         List<Document> uniqueDocs = new ArrayList<>();
         boolean[] merged = new boolean[dtos.size()];
 
-        // Extrair vetores dos DTOs
+        // Pré-carrega vetores para performance
         List<RealVector> vectors = new ArrayList<>();
         for (CachedDocumentDTO dto : dtos) {
-            vectors.add(dto.getRealVector());
+            vectors.add(VectorUtils.toRealVector(dto.getEmbedding()));
         }
 
         for (int i = 0; i < dtos.size(); i++) {
             if (merged[i]) continue;
-            if (vectors.get(i) == null) continue;
 
             CachedDocumentDTO baseDto = dtos.get(i);
             RealVector baseVector = vectors.get(i);
@@ -45,68 +125,51 @@ public class ClusteringService {
 
             for (int j = i + 1; j < dtos.size(); j++) {
                 if (merged[j]) continue;
-                if (vectors.get(j) == null) continue;
 
-                double similarity = VectorUtils.cosineSimilarity(baseVector, vectors.get(j));
+                RealVector candidateVector = vectors.get(j);
+                double sim = VectorUtils.cosineSimilarity(baseVector, candidateVector);
 
-                if (similarity >= DUPLICATE_THRESHOLD) {
-                    log.debug("MERGE: '{}' absorbed '{}' (Score: {:.4f})",
-                            baseDto.getMetadata().get("filename"),
-                            dtos.get(j).getMetadata().get("filename"),
-                            similarity);
+                if (sim >= DUPLICATE_THRESHOLD) {
                     weight++;
-                    merged[j] = true;
+                    merged[j] = true; // Marca como absorvido
                 }
             }
-
-            // Criar o Documento final (retornando ao padrão Spring AI)
             uniqueDocs.add(createWeightedDocument(baseDto, weight));
         }
-
-        log.info("Deduplication: {} -> {} documents.", dtos.size(), uniqueDocs.size());
         return uniqueDocs;
     }
 
-    // --- PARTE 2: K-MEANS CLUSTERING ---
-
     /**
-     * Aplica K-Means simples para dividir os documentos em K clusters.
-     * Retorna um Mapa onde a Chave é o ID do Cluster (0 ou 1) e o Valor é a lista de documentos.
+     * K-Means Clustering Simples.
      */
     public Map<Integer, List<Document>> clusterKMeans(List<Document> documents, int k) {
+        // Fallback se não houver documentos suficientes para K clusters
         if (documents.size() < k) {
-            log.warn("Not enough documents for K-Means (Docs: {}, K: {}). Returning all in Cluster 0.", documents.size(), k);
-            return Map.of(0, documents);
+            Map<Integer, List<Document>> fallback = new HashMap<>();
+            fallback.put(0, documents);
+            for (int i = 1; i < k; i++) fallback.put(i, new ArrayList<>());
+            return fallback;
         }
 
-        log.info("--- Starting K-Means (K={}) ---", k);
-
-        // 1. Inicialização: Escolher centróides aleatórios iniciais
-        // Melhoria: Poderíamos usar K-Means++, mas random funciona para este volume.
+        // 1. Inicialização: Escolhe os K primeiros como centróides iniciais
         List<RealVector> centroids = new ArrayList<>();
-        List<RealVector> vectors = extractVectors(documents); // Helper para extrair dos metadados
-
-        // Pega os K primeiros documentos como centróides iniciais (simples e determinístico para testes)
-        for (int i = 0; i < k; i++) {
-            centroids.add(vectors.get(i));
-        }
+        List<RealVector> vectors = extractVectorsList(documents);
+        for (int i = 0; i < k; i++) centroids.add(vectors.get(i));
 
         Map<Integer, List<Document>> clusters = new HashMap<>();
-        int maxIterations = 10; // Convergência rápida esperada
         boolean changed = true;
+        int maxIterations = 20; // Limite de segurança
 
         for (int iter = 0; iter < maxIterations && changed; iter++) {
             // Limpa clusters
             clusters.clear();
             for (int i = 0; i < k; i++) clusters.put(i, new ArrayList<>());
 
-            // Passo de Atribuição: Cada documento vai para o centróide mais próximo
-            List<Integer> assignments = new ArrayList<>();
-
+            // Atribuição
             for (int i = 0; i < vectors.size(); i++) {
                 RealVector vec = vectors.get(i);
                 int bestCluster = 0;
-                double maxSim = -1.0; // Cosseno: quanto maior, melhor (perto de 1.0)
+                double maxSim = -1.0;
 
                 for (int c = 0; c < k; c++) {
                     double sim = VectorUtils.cosineSimilarity(vec, centroids.get(c));
@@ -115,52 +178,42 @@ public class ClusteringService {
                         bestCluster = c;
                     }
                 }
-
                 clusters.get(bestCluster).add(documents.get(i));
-                assignments.add(bestCluster);
             }
 
-            // Passo de Atualização: Recalcular centróides
+            // Atualização de Centróides
             List<RealVector> newCentroids = new ArrayList<>();
             boolean currentIterChanged = false;
 
             for (int c = 0; c < k; c++) {
                 List<Document> clusterDocs = clusters.get(c);
                 if (clusterDocs.isEmpty()) {
-                    // Se um cluster ficou vazio, mantém o antigo (edge case)
                     newCentroids.add(centroids.get(c));
                     continue;
                 }
 
-                List<RealVector> clusterVectors = extractVectors(clusterDocs);
-                RealVector newCentroid = VectorUtils.calculateCentroid(clusterVectors);
+                RealVector newCentroid = VectorUtils.calculateCentroid(extractVectorsList(clusterDocs));
                 newCentroids.add(newCentroid);
 
-                // Verifica se o centróide mudou significativamente
-                if (VectorUtils.cosineSimilarity(centroids.get(c), newCentroid) < 0.999) {
+                // Se o centróide moveu menos que 0.0001, consideramos estável
+                if (VectorUtils.cosineSimilarity(centroids.get(c), newCentroid) < 0.9999) {
                     currentIterChanged = true;
                 }
             }
-
             centroids = newCentroids;
             changed = currentIterChanged;
-            log.debug("K-Means Iteration {}: Changed? {}", iter + 1, changed);
         }
-
         return clusters;
     }
 
-    // --- PARTE 3: SELEÇÃO DE MEDOIDE (REPRESENTANTE) ---
-
     /**
-     * Encontra o documento real que está mais próximo do centro matemático do cluster.
-     * Esse documento será o "Resumo" ou "Representante" do grupo.
+     * Encontra o Medoide (Documento real mais próximo do centro matemático do cluster).
      */
     public Document findMedoid(List<Document> clusterDocs) {
-        if (clusterDocs.isEmpty()) return null;
+        if (clusterDocs == null || clusterDocs.isEmpty()) return null;
         if (clusterDocs.size() == 1) return clusterDocs.get(0);
 
-        List<RealVector> vectors = extractVectors(clusterDocs);
+        List<RealVector> vectors = extractVectorsList(clusterDocs);
         RealVector centroid = VectorUtils.calculateCentroid(vectors);
 
         Document bestDoc = null;
@@ -173,51 +226,60 @@ public class ClusteringService {
                 bestDoc = clusterDocs.get(i);
             }
         }
-
         return bestDoc;
     }
 
-    // --- HELPER ---
+    // --- MÉTODOS AUXILIARES ---
 
-    // Extrai RealVectors da lista de Documentos (lendo do Metadata "custom_embedding")
-    private List<RealVector> extractVectors(List<Document> docs) {
-        List<RealVector> result = new ArrayList<>();
-        for (Document d : docs) {
-            Object meta = d.getMetadata().get("custom_embedding");
-
-            if (meta instanceof List) {
-                result.add(VectorUtils.toRealVector((List<Double>) meta));
-            } else {
-                // Log de erro mais detalhado para debug
-                log.error("CRITICAL: Missing embedding for K-Means in file: {}", d.getMetadata().get("filename"));
-                throw new RuntimeException("Missing embedding for K-Means. Pipeline broken.");
-            }
-        }
-        return result;
-    }
-
-    // Substitua este método no final da classe ClusteringService.java
-
+    // Converte DTO para Document e injeta metadados vitais
     private Document createWeightedDocument(CachedDocumentDTO dto, int weight) {
-        // 1. Copia os metadados originais
         Map<String, Object> newMeta = new HashMap<>();
         if (dto.getMetadata() != null) {
             newMeta.putAll(dto.getMetadata());
         }
 
-        // 2. Adiciona o peso do cluster
         newMeta.put("cluster_weight", weight);
 
-        // 3. CRÍTICO: Injeta o vetor explicitamente nos metadados
-        // Sem isso, o K-Means não consegue ler o vetor depois
+        // CRÍTICO: Injeta o embedding nos metadados para uso posterior no K-Means
         if (dto.getEmbedding() != null) {
             newMeta.put("custom_embedding", dto.getEmbedding());
         } else {
-            log.warn("Warning: Dropping embedding for document {} during conversion!", dto.getBody());
+            log.warn("Document {} has no embedding!", dto.getBody());
         }
 
-        // Retorna o Documento pronto para o K-Means
         return new Document(dto.getBody(), newMeta);
     }
 
+    private Map<String, List<CachedDocumentDTO>> groupDocumentsByProcedure(List<CachedDocumentDTO> allDocs) {
+        return allDocs.stream().collect(Collectors.groupingBy(dto -> {
+            String fullPath = (String) dto.getMetadata().get("path");
+            if (fullPath == null) return "UNKNOWN";
+            try {
+                var parent = Paths.get(fullPath).getParent();
+                return parent != null ? parent.getFileName().toString() : "ROOT";
+            } catch (Exception e) {
+                return "UNKNOWN";
+            }
+        }));
+    }
+
+    private List<RealVector> extractVectorsList(List<Document> docs) {
+        List<RealVector> result = new ArrayList<>();
+        for (Document d : docs) {
+            result.add(extractVector(d));
+        }
+        return result;
+    }
+
+    private RealVector extractVector(Document d) {
+        Object meta = d.getMetadata().get("custom_embedding");
+        if (meta instanceof List) {
+            return VectorUtils.toRealVector((List<Double>) meta);
+        }
+        throw new RuntimeException("Vector missing in document metadata: " + d.getMetadata().get("filename"));
+    }
+
+    private double calculateSimilarity(Document d1, Document d2) {
+        return VectorUtils.cosineSimilarity(extractVector(d1), extractVector(d2));
+    }
 }
