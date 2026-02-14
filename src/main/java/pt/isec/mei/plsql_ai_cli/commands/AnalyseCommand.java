@@ -19,16 +19,16 @@ public class AnalyseCommand {
     private final ClusteringService clusteringService;
     private final ReportService reportService;
 
-    @ShellMethod(key = "analyze-results", value = "Fase 4: Executa análise de instabilidade e gera relatórios MD e CSV.")
+    @ShellMethod(key = "analyze-results", value = "Analisa a consistência semântica das explicações via clustering (Weighted-AST) e gera métricas de instabilidade em MD e CSV.")
     public String analyzeResults() {
-        // 1. Carregar do Cache (Vetorizados pelo Codestral)
-        List<CachedDocumentDTO> rawDocs = cacheLoaderService.loadAllDocuments();
-        if (rawDocs.isEmpty()) return "Erro: Cache vazio. Execute 'vectorize-all' primeiro.";
+        List<CachedDocumentDTO> docs = cacheLoaderService.loadAllDocuments();
 
-        // 2. Processar Lógica de Clustering e Instabilidade
-        List<ProcedureAnalysisResult> results = clusteringService.analyzeAllProcedures(rawDocs);
+        if (docs.isEmpty()) {
+            return "Erro: Cache vazio. Execute 'vectorize-all' primeiro.";
+        }
 
-        // 3. Gerar Outputs Finais (Markdown para humanos, CSV para estatísticas)
+        List<ProcedureAnalysisResult> results = clusteringService.analyzeAllProcedures(docs);
+
         return reportService.generateAndSaveReport(results);
     }
 }

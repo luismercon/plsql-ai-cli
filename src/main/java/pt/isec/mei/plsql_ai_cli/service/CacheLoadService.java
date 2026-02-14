@@ -15,34 +15,33 @@ import java.util.Map;
 @Service
 @Slf4j
 public class CacheLoadService {
+
     private static final String CACHE_FILE = "cache/vectors_cache.json";
 
     public List<CachedDocumentDTO> loadAllDocuments() {
         File file = new File(CACHE_FILE);
-        // Tenta também na pasta cache/ se não encontrar na raiz
-        if (!file.exists()) {
-            file = new File("cache/" + CACHE_FILE);
-        }
 
         if (!file.exists()) {
-            log.error("Cache file not found at {}", file.getAbsolutePath());
+            log.error("Ficheiro de cache não encontrado em: {}", file.getAbsolutePath());
             return new ArrayList<>();
         }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            log.info("Loading vectors directly from raw JSON: {}", file.getAbsolutePath());
+            log.info("A carregar vetores do cache JSON: {}", file.getAbsolutePath());
 
-            // O SimpleVectorStore guarda um Map<String, Document> ou apenas uma lista?
-            // Normalmente é um Map<String, Document>. Vamos tentar ler assim.
-            Map<String, CachedDocumentDTO> data = mapper.readValue(file, new TypeReference<Map<String, CachedDocumentDTO>>() {
-            });
+            // O SimpleVectorStore do Spring AI persiste os dados como um Map (ID -> Documento)
+            Map<String, CachedDocumentDTO> data = mapper.readValue(
+                    file,
+                    new TypeReference<>() {
+                    }
+            );
 
-            log.info("Loaded {} documents with embeddings from cache.", data.size());
+            log.info("Sucesso: {} documentos com embeddings carregados.", data.size());
             return new ArrayList<>(data.values());
 
         } catch (IOException e) {
-            log.error("Error parsing cache JSON", e);
+            log.error("Erro ao processar o JSON do cache", e);
             return new ArrayList<>();
         }
     }

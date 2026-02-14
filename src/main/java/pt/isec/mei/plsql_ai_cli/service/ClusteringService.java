@@ -8,8 +8,8 @@ import pt.isec.mei.plsql_ai_cli.model.CachedDocumentDTO;
 import pt.isec.mei.plsql_ai_cli.model.ProcedureAnalysisResult;
 import pt.isec.mei.plsql_ai_cli.utils.VectorUtils;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,231 +19,132 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClusteringService {
 
-    // --- CONFIGURAÇÕES DO ALGORITMO ---
-    private static final double DUPLICATE_THRESHOLD = 0.96; // Se > 96% igual, funde no mesmo documento
-    private static final double SIMILARITY_THRESHOLD = 0.95; // Se > 95% igual entre grupos, é unânime
-    private static final int K_MEANS_CLUSTERS = 2; // Queremos dividir em 2 grupos (ex: Consistente vs Alucinação)
+    private static final double DUPLICATE_THRESHOLD = 0.96;
 
-
-    /**
-     * Ponto de entrada principal. Recebe todos os documentos crus, agrupa por procedure,
-     * e executa a análise completa para cada uma.
-     */
-    public List<ProcedureAnalysisResult> analyzeAllProcedures(List<CachedDocumentDTO> rawDocs) {
-        Map<String, List<CachedDocumentDTO>> docsByProcedure = groupDocumentsByProcedure(rawDocs);
-        return docsByProcedure.entrySet().stream()
-                .map(e -> analyzeSingleProcedure(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
-    }
-
-    // --- ORQUESTRAÇÃO DA ANÁLISE ---
-
-    private ProcedureAnalysisResult analyzeSingleProcedure(String procName, List<CachedDocumentDTO> procDocs) {
-        List<Document> uniqueDocs = deduplicate(procDocs);
-
-        if (uniqueDocs.size() < 2) {
-            return new ProcedureAnalysisResult(procName, procDocs.size(), uniqueDocs, true,
-                    new HashMap<>(), 1.0, 0.0, "TRIVIAL",
-                    uniqueDocs.isEmpty() ? null : uniqueDocs.get(0), null);
+    public List<ProcedureAnalysisResult> analyzeAllProcedures(List<CachedDocumentDTO> allDocs) {
+        if (allDocs == null || allDocs.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        Map<Integer, List<Document>> clusters = clusterKMeans(uniqueDocs, K_MEANS_CLUSTERS);
-        Document m0 = findMedoid(clusters.get(0));
-        Document m1 = findMedoid(clusters.get(1));
+        Map<String, List<CachedDocumentDTO>> groupedByProcedure = allDocs.stream()
+                .collect(Collectors.groupingBy(dto -> {
+                    String path = (String) dto.getMetadata().get("path");
+                    return extractProcedureFromPathOrFile(path != null ? path : (String) dto.getMetadata().get("filename"));
+                }));
 
-        double similarity = (m0 != null && m1 != null) ? calculateSimilarity(m0, m1) : 1.0;
-        double instability = 1.0 - similarity; // Cálculo central da Fase 4
-
-        String decision = (similarity >= SIMILARITY_THRESHOLD) ? "UNANIMIDADE" : "AMBIGUIDADE";
-        Document winner = (clusters.get(0).size() >= clusters.get(1).size()) ? m0 : m1;
-        Document alternative = (decision.equals("AMBIGUIDADE")) ? (winner == m0 ? m1 : m0) : null;
-
-        return new ProcedureAnalysisResult(procName, procDocs.size(), uniqueDocs, false,
-                clusters, similarity, instability, decision, winner, alternative);
+        List<ProcedureAnalysisResult> finalResults = new ArrayList<>();
+        for (Map.Entry<String, List<CachedDocumentDTO>> entry : groupedByProcedure.entrySet()) {
+            List<Document> weightedDocs = deduplicate(entry.getValue());
+            finalResults.add(performFullAnalysis(entry.getKey(), weightedDocs, entry.getValue().size()));
+        }
+        return finalResults;
     }
 
-    // --- ALGORITMOS MATEMÁTICOS ---
+    private String extractProcedureFromPathOrFile(String path) {
+        if (path == null || path.isBlank()) {
+            return "unknown";
+        }
 
-    /**
-     * Algoritmo de Deduplicação (Soft Merge).
-     * Compara N x N documentos. Se similaridade > 0.96, funde e aumenta o peso.
-     */
+
+        String[] parts = path.replace("\\", "/").split("/");
+
+        if (parts.length >= 2) {
+            return parts[parts.length - 2];
+        }
+
+        return parts[0].replace(".md", "");
+    }
+
     public List<Document> deduplicate(List<CachedDocumentDTO> dtos) {
-        if (dtos.isEmpty()) return new ArrayList<>();
-
         List<Document> uniqueDocs = new ArrayList<>();
-        boolean[] merged = new boolean[dtos.size()];
+        int size = dtos.size();
+        boolean[] merged = new boolean[size];
+        List<RealVector> vectors = dtos.stream()
+                .map(dto -> VectorUtils.toRealVector(dto.getEmbedding()))
+                .toList();
 
-        // Pré-carrega vetores para performance
-        List<RealVector> vectors = new ArrayList<>();
-        for (CachedDocumentDTO dto : dtos) {
-            vectors.add(VectorUtils.toRealVector(dto.getEmbedding()));
-        }
-
-        for (int i = 0; i < dtos.size(); i++) {
+        for (int i = 0; i < size; i++) {
             if (merged[i]) continue;
-
-            CachedDocumentDTO baseDto = dtos.get(i);
-            RealVector baseVector = vectors.get(i);
             int weight = 1;
-
-            for (int j = i + 1; j < dtos.size(); j++) {
-                if (merged[j]) continue;
-
-                RealVector candidateVector = vectors.get(j);
-                double sim = VectorUtils.cosineSimilarity(baseVector, candidateVector);
-
-                if (sim >= DUPLICATE_THRESHOLD) {
+            for (int j = i + 1; j < size; j++) {
+                if (!merged[j] && VectorUtils.cosineSimilarity(vectors.get(i), vectors.get(j)) >= DUPLICATE_THRESHOLD) {
                     weight++;
-                    merged[j] = true; // Marca como absorvido
+                    merged[j] = true;
                 }
             }
-            uniqueDocs.add(createWeightedDocument(baseDto, weight));
+            uniqueDocs.add(createWeightedDocument(dtos.get(i), weight));
         }
         return uniqueDocs;
     }
 
-    /**
-     * K-Means Clustering Simples.
-     */
-    public Map<Integer, List<Document>> clusterKMeans(List<Document> documents, int k) {
-        // Fallback se não houver documentos suficientes para K clusters
-        if (documents.size() < k) {
-            Map<Integer, List<Document>> fallback = new HashMap<>();
-            fallback.put(0, documents);
-            for (int i = 1; i < k; i++) fallback.put(i, new ArrayList<>());
-            return fallback;
-        }
+    private ProcedureAnalysisResult performFullAnalysis(String procedureName, List<Document> uniqueDocs, int totalFiles) {
+        // 1. Identifica o Medoide (Vencedor)
+        Document winner = uniqueDocs.stream()
+                .max(Comparator.comparingInt(d -> (int) d.getMetadata().get("cluster_weight")))
+                .orElse(uniqueDocs.get(0));
 
-        // 1. Inicialização: Escolhe os K primeiros como centróides iniciais
-        List<RealVector> centroids = new ArrayList<>();
-        List<RealVector> vectors = extractVectorsList(documents);
-        for (int i = 0; i < k; i++) centroids.add(vectors.get(i));
+        // 2. Calcula similaridade individual e separa em clusters manualmente se houver divergência
+        List<Document> cluster0 = new ArrayList<>();
+        List<Document> cluster1 = new ArrayList<>();
+
+        RealVector winnerVec = VectorUtils.toRealVector((List<Double>) winner.getMetadata().get("custom_embedding"));
+
+        for (Document doc : uniqueDocs) {
+            RealVector currentVec = VectorUtils.toRealVector((List<Double>) doc.getMetadata().get("custom_embedding"));
+            double score = VectorUtils.cosineSimilarity(winnerVec, currentVec);
+
+            // Threshold de Rigor: se baixar de 0.90, consideramos uma interpretação "Alternativa"
+            if (score >= 0.90) {
+                cluster0.add(doc);
+            } else {
+                cluster1.add(doc);
+            }
+        }
 
         Map<Integer, List<Document>> clusters = new HashMap<>();
-        boolean changed = true;
-        int maxIterations = 20; // Limite de segurança
-
-        for (int iter = 0; iter < maxIterations && changed; iter++) {
-            // Limpa clusters
-            clusters.clear();
-            for (int i = 0; i < k; i++) clusters.put(i, new ArrayList<>());
-
-            // Atribuição
-            for (int i = 0; i < vectors.size(); i++) {
-                RealVector vec = vectors.get(i);
-                int bestCluster = 0;
-                double maxSim = -1.0;
-
-                for (int c = 0; c < k; c++) {
-                    double sim = VectorUtils.cosineSimilarity(vec, centroids.get(c));
-                    if (sim > maxSim) {
-                        maxSim = sim;
-                        bestCluster = c;
-                    }
-                }
-                clusters.get(bestCluster).add(documents.get(i));
-            }
-
-            // Atualização de Centróides
-            List<RealVector> newCentroids = new ArrayList<>();
-            boolean currentIterChanged = false;
-
-            for (int c = 0; c < k; c++) {
-                List<Document> clusterDocs = clusters.get(c);
-                if (clusterDocs.isEmpty()) {
-                    newCentroids.add(centroids.get(c));
-                    continue;
-                }
-
-                RealVector newCentroid = VectorUtils.calculateCentroid(extractVectorsList(clusterDocs));
-                newCentroids.add(newCentroid);
-
-                // Se o centróide moveu menos que 0.0001, consideramos estável
-                if (VectorUtils.cosineSimilarity(centroids.get(c), newCentroid) < 0.9999) {
-                    currentIterChanged = true;
-                }
-            }
-            centroids = newCentroids;
-            changed = currentIterChanged;
+        clusters.put(0, cluster0);
+        if (!cluster1.isEmpty()) {
+            clusters.put(1, cluster1);
         }
-        return clusters;
+
+        double interRepSimilarity = calculateAverageSimilarity(winner, uniqueDocs);
+        String decision = (clusters.size() > 1) ? "AMBIGUIDADE" : "CONSENSO";
+
+        return new ProcedureAnalysisResult(
+                procedureName,
+                totalFiles,
+                uniqueDocs,
+                decision.equals("CONSENSO"),
+                clusters,
+                interRepSimilarity,
+                1.0 - interRepSimilarity,
+                decision,
+                winner,
+                cluster1.isEmpty() ? null : cluster1.get(0) // O líder da divergência
+        );
     }
 
-    /**
-     * Encontra o Medoide (Documento real mais próximo do centro matemático do cluster).
-     */
-    public Document findMedoid(List<Document> clusterDocs) {
-        if (clusterDocs == null || clusterDocs.isEmpty()) return null;
-        if (clusterDocs.size() == 1) return clusterDocs.get(0);
-
-        List<RealVector> vectors = extractVectorsList(clusterDocs);
-        RealVector centroid = VectorUtils.calculateCentroid(vectors);
-
-        Document bestDoc = null;
-        double bestSim = -1.0;
-
-        for (int i = 0; i < clusterDocs.size(); i++) {
-            double sim = VectorUtils.cosineSimilarity(centroid, vectors.get(i));
-            if (sim > bestSim) {
-                bestSim = sim;
-                bestDoc = clusterDocs.get(i);
-            }
-        }
-        return bestDoc;
+    private double calculateAverageSimilarity(Document winner, List<Document> others) {
+        if (others.size() <= 1) return 1.0;
+        RealVector winnerVec = VectorUtils.toRealVector((List<Double>) winner.getMetadata().get("custom_embedding"));
+        return others.stream()
+                .mapToDouble(d -> VectorUtils.cosineSimilarity(winnerVec, VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"))))
+                .average().orElse(1.0);
     }
 
-    // --- MÉTODOS AUXILIARES ---
-
-    // Converte DTO para Document e injeta metadados vitais
     private Document createWeightedDocument(CachedDocumentDTO dto, int weight) {
-        Map<String, Object> newMeta = new HashMap<>();
-        if (dto.getMetadata() != null) {
-            newMeta.putAll(dto.getMetadata());
+        Map<String, Object> metadata = new HashMap<>(dto.getMetadata());
+        metadata.put("cluster_weight", weight);
+        metadata.put("custom_embedding", dto.getEmbedding());
+
+        // Injetamos o nome correto da procedure para que o ReportService o encontre facilmente
+        String fullPath = (String) metadata.get("path");
+        if (fullPath == null) {
+            fullPath = (String) metadata.get("filename");
         }
 
-        newMeta.put("cluster_weight", weight);
+        metadata.put("procedure_name", extractProcedureFromPathOrFile(fullPath));
 
-        // CRÍTICO: Injeta o embedding nos metadados para uso posterior no K-Means
-        if (dto.getEmbedding() != null) {
-            newMeta.put("custom_embedding", dto.getEmbedding());
-        } else {
-            log.warn("Document {} has no embedding!", dto.getBody());
-        }
-
-        return new Document(dto.getBody(), newMeta);
-    }
-
-    private Map<String, List<CachedDocumentDTO>> groupDocumentsByProcedure(List<CachedDocumentDTO> allDocs) {
-        return allDocs.stream().collect(Collectors.groupingBy(dto -> {
-            String fullPath = (String) dto.getMetadata().get("path");
-            if (fullPath == null) return "UNKNOWN";
-            try {
-                var parent = Paths.get(fullPath).getParent();
-                return parent != null ? parent.getFileName().toString() : "ROOT";
-            } catch (Exception e) {
-                return "UNKNOWN";
-            }
-        }));
-    }
-
-    private List<RealVector> extractVectorsList(List<Document> docs) {
-        List<RealVector> result = new ArrayList<>();
-        for (Document d : docs) {
-            result.add(extractVector(d));
-        }
-        return result;
-    }
-
-    private RealVector extractVector(Document d) {
-        Object meta = d.getMetadata().get("custom_embedding");
-        if (meta instanceof List) {
-            return VectorUtils.toRealVector((List<Double>) meta);
-        }
-        throw new RuntimeException("Vector missing in document metadata: " + d.getMetadata().get("filename"));
-    }
-
-    private double calculateSimilarity(Document d1, Document d2) {
-        return VectorUtils.cosineSimilarity(extractVector(d1), extractVector(d2));
+        return new Document(dto.getBody(), metadata);
     }
 }

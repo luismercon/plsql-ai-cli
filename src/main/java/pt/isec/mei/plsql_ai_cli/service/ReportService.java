@@ -26,11 +26,9 @@ public class ReportService {
     public String generateAndSaveReport(List<ProcedureAnalysisResult> results) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
 
-        // 1. Gerar e Salvar Markdown (Para humanos)
         String reportContent = buildReportString(results);
         saveToFile(reportContent, "report_" + timestamp + ".md");
 
-        // 2. Gerar e Salvar CSV (Para análise de dados/dissertação)
         String csvContent = buildCsvString(results);
         saveToFile(csvContent, "summary_" + timestamp + ".csv");
 
@@ -45,11 +43,11 @@ public class ReportService {
         sb.append("---\n\n");
 
         for (ProcedureAnalysisResult res : results) {
-            double instability = 1.0 - res.interRepSimilarity();
+            double instability = res.instabilityScore();
 
             sb.append("## 📂 PROCEDURE: ").append(res.procedureName()).append("\n");
             sb.append(String.format("- **Total de Execuções:** %d\n", res.totalFiles()));
-            sb.append(String.format("- **Similaridade Inter-Representantes:** %.4f\n", res.interRepSimilarity()));
+            sb.append(String.format("- **Similaridade Média do Grupo:** %.4f\n", res.interRepSimilarity()));
             sb.append(String.format("- **Score de Instabilidade:** %.4f %s\n",
                     instability, instability > 0.1 ? "⚠️" : "✅"));
 
@@ -64,15 +62,26 @@ public class ReportService {
                 }
             }
 
-            // Detalhes dos Clusters
             sb.append("\n### 📊 Distribuição dos Clusters\n");
+            // Obtemos o vetor do vencedor para calcular o score individual de cada ficheiro
+            RealVector winnerVec = VectorUtils.toRealVector((List<Double>) res.recommendedWinner().getMetadata().get("custom_embedding"));
+
             for (Map.Entry<Integer, List<Document>> entry : res.clusters().entrySet()) {
                 sb.append(String.format("\n#### 🔷 CLUSTER %d (%d docs)\n", entry.getKey(), entry.getValue().size()));
                 for (Document d : entry.getValue()) {
                     String filename = (String) d.getMetadata().get("filename");
-                    boolean isRep = d == res.recommendedWinner() || d == res.alternativeOption();
-                    sb.append(String.format("- %s `%s` → **Técnica:** %s\n",
-                            isRep ? "👑" : "-", filename, translateTechnique(filename)));
+
+                    // Cálculo do Score Individual vs Vencedor
+                    RealVector currentVec = VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"));
+                    double individualScore = VectorUtils.cosineSimilarity(winnerVec, currentVec);
+
+                    boolean isRep = d.equals(res.recommendedWinner()) || d.equals(res.alternativeOption());
+
+                    sb.append(String.format("- %s `%s` | **Score:** %.4f | **Técnica:** %s\n",
+                            isRep ? "👑" : "-",
+                            filename,
+                            individualScore,
+                            translateTechnique(filename)));
                 }
             }
             sb.append("\n---\n\n");
@@ -82,7 +91,6 @@ public class ReportService {
 
     private String buildCsvString(List<ProcedureAnalysisResult> results) {
         StringBuilder sb = new StringBuilder();
-        // Header do CSV
         sb.append("procedure;total_files;similarity;instability;decision;winner_file;winner_technique\n");
 
         for (ProcedureAnalysisResult res : results) {
@@ -91,7 +99,7 @@ public class ReportService {
                     res.procedureName(),
                     res.totalFiles(),
                     res.interRepSimilarity(),
-                    1.0 - res.interRepSimilarity(),
+                    res.instabilityScore(),
                     res.systemDecision(),
                     winnerFile,
                     translateTechnique(winnerFile)
@@ -100,51 +108,59 @@ public class ReportService {
         return sb.toString();
     }
 
-    /**
-     * Traduz o nome do arquivo para a técnica baseada na metodologia dos artigos.
-     * Ex: fs_dirty_2026... -> Few-Shot com Ruído
-     */
     private String translateTechnique(String filename) {
-        if (filename == null) return "Unknown";
+        if (filename == null) {
+            return "Unknown";
+        }
+
         String fn = filename.toLowerCase();
 
-        String technique = "Unknown";
-        if (fn.startsWith("ss")) technique = "Single-Shot";
-        else if (fn.startsWith("fs")) technique = "Few-Shot";
-        else if (fn.startsWith("cot")) technique = "Chain-of-Thought";
+        String technique = switch (extractPrefix(fn)) {
+            case "single-shot", "ss" -> "Single-Shot";
+            case "few-shot", "fs" -> "Few-Shot";
+            case "chain-of-thought", "cot" -> "Chain-of-Thought";
+            default -> "Unknown";
+        };
 
         String context = "Unknown";
-        if (fn.contains("clean")) context = "Clean Code";
-        else if (fn.contains("dirty")) context = "Legacy/Dirty Code";
-        else if (fn.contains("raw")) context = "Raw Prompt";
+        if (fn.contains("clean")) {
+            context = "Clean Code";
+        } else if (fn.contains("dirty")) {
+            context = "Legacy/Dirty Code";
+        } else if (fn.contains("raw")) {
+            context = "Raw Prompt";
+        }
 
         return technique + " (" + context + ")";
+    }
+
+    private String extractPrefix(String filename) {
+        if (filename.contains("_")) {
+            return filename.split("_")[0];
+        }
+        return filename;
     }
 
     private void appendWinnerInfo(StringBuilder sb, String label, Document doc) {
         String fname = (String) doc.getMetadata().get("filename");
         sb.append(String.format("- **Opção %s:** `%s`  \n", label, fname));
         sb.append(String.format("  - *Técnica:* %s  \n", translateTechnique(fname)));
-        sb.append(String.format("  - *Peso no Consenso:* %d  \n", doc.getMetadata().get("cluster_weight")));
+
+        Object weight = doc.getMetadata().get("cluster_weight");
+        sb.append(String.format("  - *Peso no Consenso:* %s  \n", weight != null ? weight : "1"));
     }
 
     private void saveToFile(String content, String filename) {
         try {
             Path dir = Paths.get(REPORT_DIR);
-            if (!Files.exists(dir)) Files.createDirectories(dir);
+            if (!Files.exists(dir)) {
+                Files.createDirectories(dir);
+            }
             Path file = dir.resolve(filename);
             Files.writeString(file, content, StandardCharsets.UTF_8);
-            System.out.println("[INFO] Arquivo salvo: " + file);
+            log.info("Relatório guardado: {}", file);
         } catch (IOException e) {
-            log.error("Erro ao salvar arquivo: {}", filename, e);
+            log.error("Erro ao guardar ficheiro: {}", filename, e);
         }
-    }
-
-    private RealVector extractVector(Document d) {
-        return VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"));
-    }
-
-    private RealVector calculateCentroid(List<Document> docs) {
-        return VectorUtils.calculateCentroid(docs.stream().map(this::extractVector).toList());
     }
 }

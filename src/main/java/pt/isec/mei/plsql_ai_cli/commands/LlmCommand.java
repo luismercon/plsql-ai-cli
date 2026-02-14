@@ -19,47 +19,38 @@ public class LlmCommand {
     private final ProceduresFolderValidator proceduresFolderValidator;
     private final GenerationOrchestratorService orchestratorService;
 
-    @ShellMethod(key = "analyze", value = "Analyze the SQL code from the stored procedure")
-    public String analyzeSqlCode() {
-        // Validate that procedures folder exists and contains SQL files
+    @ShellMethod(key = "generate", value = "Gera a análise de uma procedure específica (individual).")
+    public String generate() {
         proceduresFolderValidator.validateProceduresFolder();
 
-        // Step 1: Ask for approach
-        String approach = userInteractionService.promptForApproach();
-
-        // Step 2: Ask for type (only if approach is noise)
-        String type = userInteractionService.promptForType(approach);
-
-        // Step 3: Ask for promptType (only if approach is technique)
-        String promptType = userInteractionService.promptForPromptType(approach);
-
-        // Step 4: Get list of procedures and let user choose by number
+        String strategy = userInteractionService.promptForStrategy();
+        String noiseLevel = userInteractionService.promptForNoiseLevel();
         String procedureName = userInteractionService.promptForProcedure();
 
-        return ollamaService.analyze(type, procedureName, approach, promptType);
+        return ollamaService.analyze(noiseLevel, procedureName, strategy);
     }
 
-    @ShellMethod(key = "generate-batch", value = "Generate analysis for all procedures with all PromptStrategy and NoiseLevel combinations")
+    @ShellMethod(key = "generate-batch", value = "Gera as 9 variantes para todas as procedures (processamento em massa).")
     public String generateBatch() {
-        // Validate that procedures folder exists and contains SQL files
         proceduresFolderValidator.validateProceduresFolder();
 
-        System.out.println("\n=== Batch Generation Mode ===");
-        System.out.println("This will analyze ALL procedures in the procedures/ folder");
-        System.out.println("Each procedure will be analyzed with:");
-        System.out.println("  - 3 Prompt Strategies: Single Shot, Few Shot, Chain of Thought");
-        System.out.println("  - 3 Noise Levels: Clean, Raw, Dirty");
-        System.out.println("  - Total: 9 analyses per procedure");
-        System.out.println("\nThis may take a considerable amount of time...\n");
+        System.out.println("\n==================================================");
+        System.out.println("   MODO DE GERAÇÃO EM BATCH (Benchmark Informix)");
+        System.out.println("==================================================");
+        System.out.println("Este processo analisará TODAS as procedures na pasta de entrada.");
+        System.out.println("Cada procedure será submetida a 9 variantes:");
+        System.out.println("  • Estratégias: Single Shot, Few Shot, Chain of Thought");
+        System.out.println("  • Contextos: Clean, Raw, Dirty");
+        System.out.println("\nNota: Este processo pode ser demorado dependendo do hardware local.");
+        System.out.println("--------------------------------------------------\n");
 
         orchestratorService.runBatchGeneration();
 
-        return "Batch generation initiated. Check logs and progress bar.";
+        return "Geração em batch iniciada. Acompanhe o progresso nos logs e na barra de estado.";
     }
 
-    @ShellMethod(key = "list", value = "List all SQL files in the procedures directory")
+    @ShellMethod(key = "list", value = "Lista as procedures encontradas na pasta de entrada.")
     public String listSqlFiles() {
-        // Validate that procedures folder exists and contains SQL files
         proceduresFolderValidator.validateProceduresFolder();
         return documentService.listSqlFiles();
     }

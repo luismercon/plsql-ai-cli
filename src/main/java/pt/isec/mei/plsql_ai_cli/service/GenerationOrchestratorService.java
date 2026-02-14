@@ -10,7 +10,6 @@ import pt.isec.mei.plsql_ai_cli.enums.NoiseLevel;
 import pt.isec.mei.plsql_ai_cli.enums.PromptStrategy;
 import pt.isec.mei.plsql_ai_cli.model.AnalysisResult;
 
-
 import java.io.File;
 import java.util.List;
 
@@ -23,21 +22,15 @@ public class GenerationOrchestratorService {
     private final OllamaService ollamaService;
 
     public void runBatchGeneration() {
-        log.info("Starting batch generation process...");
-
-        // 1. Busca os arquivos físicos para o loop
         List<File> files = documentService.getAllSqlFiles();
         if (files.isEmpty()) {
-            log.warn("No SQL files found in 'procedures' folder to process.");
+            log.warn("Nenhum ficheiro SQL encontrado na pasta 'procedures'.");
             return;
         }
 
-        // 2. Calcula o total de passos para a barra de progresso
         int totalSteps = files.size() * PromptStrategy.values().length * NoiseLevel.values().length;
+        System.out.println("Iniciando Processamento em Batch: " + totalSteps + " operações em fila.\n");
 
-        System.out.println("Initializing Batch Process: " + totalSteps + " operations queued.\n");
-
-        // 3. Inicia a Barra de Progresso (Try-with-resources garante que ela feche no final)
         try (ProgressBar pb = new ProgressBarBuilder()
                 .setTaskName("Batch Gen")
                 .setInitialMax(totalSteps)
@@ -48,19 +41,18 @@ public class GenerationOrchestratorService {
                 for (PromptStrategy strategy : PromptStrategy.values()) {
                     for (NoiseLevel noise : NoiseLevel.values()) {
 
-                        // Atualiza a mensagem visual: "proc_vendas.sql [FEW_SHOT - DIRTY]"
-                        String taskName = String.format("%s [%s - %s]", file.getName(), strategy.getType(), noise.getType());
+                        String taskName = String.format("%s [%s - %s]", file.getName(), strategy.getStrategy(), noise.getLevel());
                         pb.setExtraMessage(taskName);
 
                         try {
                             long startTime = System.currentTimeMillis();
 
-                            // CHAMADA CRÍTICA: Recebe Documento + Tokens
+                            // Executa a análise via Ollama (Codestral)
                             AnalysisResult result = ollamaService.analyzeForBatch(file, strategy, noise);
 
                             long duration = System.currentTimeMillis() - startTime;
 
-                            // SALVAMENTO: Passa os tokens reais para o CSV/Markdown
+                            // Persiste o resultado em Markdown/Metadata
                             documentService.saveBatchResult(
                                     result.doc(),
                                     file,
@@ -71,16 +63,14 @@ public class GenerationOrchestratorService {
                             );
 
                         } catch (Exception e) {
-                            // Loga o erro mas NÃO para o loop. O experimento continua.
-                            log.error("Error processing {}", taskName, e);
+                            log.error("Erro ao processar {}: {}", taskName, e.getMessage());
                         } finally {
-                            // Avança a barra independente de sucesso ou erro
                             pb.step();
                         }
                     }
                 }
             }
         }
-        log.info("Batch generation completed successfully.");
+        log.info("Geração em batch concluída.");
     }
 }

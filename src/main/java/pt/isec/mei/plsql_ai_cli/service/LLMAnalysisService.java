@@ -33,16 +33,14 @@ public class LLMAnalysisService {
 
     @PostConstruct
     public void init() {
-        // Inicializa o VectorStore (usando builder para compatibilidade com M6)
         this.vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
-        // Tenta carregar o cache existente
         File cache = new File(CACHE_FILE);
         if (cache.exists()) {
-            log.info("Loading vector store from cache: {}", CACHE_FILE);
+            log.info("A carregar cache de vetores: {}", CACHE_FILE);
             this.vectorStore.load(cache);
         } else {
-            log.info("No vector cache found. Starting fresh.");
+            log.info("Cache de vetores não encontrado. A iniciar nova base.");
         }
     }
 
@@ -51,39 +49,25 @@ public class LLMAnalysisService {
         Path rootDir = Paths.get("results");
 
         if (!Files.exists(rootDir)) {
-            log.error("Results directory not found.");
+            log.error("Diretoria de resultados não encontrada.");
             return;
         }
 
-        log.info("Searching for '{}' inside '{}' subdirectories...", targetFileName, rootDir);
-
         try {
-            // Busca recursiva
             Path foundPath;
             try (var stream = Files.walk(rootDir)) {
                 foundPath = stream
                         .filter(p -> !Files.isDirectory(p))
                         .filter(p -> p.getFileName().toString().equalsIgnoreCase(targetFileName))
                         .findFirst()
-                        .orElseThrow(() -> new RuntimeException("File not found in any results subdirectory: " + targetFileName));
+                        .orElseThrow(() -> new RuntimeException("Ficheiro não encontrado: " + targetFileName));
             }
-
-            log.info("File found at: {}", foundPath.toAbsolutePath());
 
             String rawContent = Files.readString(foundPath, StandardCharsets.UTF_8);
+            if (rawContent.isEmpty()) return;
 
-            if (rawContent.isEmpty()) {
-                log.warn("File {} is empty.", targetFileName);
-                return;
-            }
-
-            // LIMPEZA: Remove metadados antes de vetorizar
             String cleanContent = removeFrontmatter(rawContent);
-
-            if (cleanContent.isEmpty()) {
-                log.warn("File {} has no content after stripping frontmatter.", targetFileName);
-                return;
-            }
+            if (cleanContent.isEmpty()) return;
 
             String relativePath = rootDir.relativize(foundPath).toString();
 
@@ -93,26 +77,20 @@ public class LLMAnalysisService {
                     "type", "documentation_output"
             ));
 
-            log.info("Generating embedding for {}...", targetFileName);
+            log.info("A gerar embedding para {}...", targetFileName);
             this.vectorStore.add(List.of(document));
-
             saveCache();
 
-            log.info("Documentation {} vectorized and saved.", targetFileName);
-
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read or find markdown file", e);
+            throw new RuntimeException("Erro ao processar ficheiro markdown", e);
         }
     }
 
     public int vectorizeAll() {
         Path rootDir = Paths.get("results");
-        if (!Files.exists(rootDir)) {
-            log.error("Results directory not found.");
-            return 0;
-        }
+        if (!Files.exists(rootDir)) return 0;
 
-        log.info("Starting batch vectorization for ALL files in results/...");
+        log.info("A iniciar vetorização em massa de todos os ficheiros em results/...");
 
         List<Document> documentsBatch = new ArrayList<>();
         int count = 0;
@@ -123,28 +101,16 @@ public class LLMAnalysisService {
                     .filter(p -> p.toString().toLowerCase().endsWith(".md"))
                     .toList();
 
-            log.info("Found {} markdown files. Processing...", markdownFiles.size());
-
             for (Path path : markdownFiles) {
                 try {
                     String rawContent = Files.readString(path, StandardCharsets.UTF_8);
-                    if (rawContent.isBlank()) continue;
-
-                    // LIMPEZA: Remove metadados antes de vetorizar
                     String cleanContent = removeFrontmatter(rawContent);
 
-                    // Ignora arquivos que ficaram vazios ou muito curtos após limpeza
-                    if (cleanContent.length() < 10) {
-                        log.debug("Skipping {} (empty after cleaning frontmatter)", path.getFileName());
-                        continue;
-                    }
-
-                    String filename = path.getFileName().toString();
-                    String relativePath = rootDir.relativize(path).toString();
+                    if (cleanContent.length() < 10) continue;
 
                     Document doc = new Document(cleanContent, Map.of(
-                            "filename", filename,
-                            "path", relativePath,
+                            "filename", path.getFileName().toString(),
+                            "path", rootDir.relativize(path).toString(),
                             "type", "documentation_output"
                     ));
 
@@ -152,58 +118,42 @@ public class LLMAnalysisService {
                     count++;
 
                 } catch (Exception e) {
-                    log.error("Failed to read file: {}", path, e);
+                    log.error("Erro ao ler ficheiro: {}", path, e);
                 }
             }
 
             if (!documentsBatch.isEmpty()) {
-                log.info("Sending {} documents to Ollama for embedding (this may take a while)...", documentsBatch.size());
+                log.info("A enviar {} documentos para o modelo de embeddings...", documentsBatch.size());
                 this.vectorStore.add(documentsBatch);
                 saveCache();
-                log.info("Batch vectorization completed. Cache updated.");
-            } else {
-                log.warn("No valid markdown files found to vectorize.");
             }
 
         } catch (IOException e) {
-            log.error("Error walking through results directory", e);
+            log.error("Erro ao percorrer diretoria de resultados", e);
         }
 
         return count;
     }
 
-    /**
-     * Remove o cabeçalho YAML (Frontmatter) do conteúdo Markdown.
-     * O padrão procura por conteúdo entre os primeiros traços (---).
-     */
     private String removeFrontmatter(String content) {
-        // Regex:
-        // (?s)  -> Habilita modo "single line" (ponto inclui quebra de linha)
-        // ^---  -> Começa com --- no início da string
-        // .*?   -> Qualquer coisa (non-greedy)
-        // ---   -> Até o próximo ---
-        // \s* -> E qualquer espaço em branco/quebra de linha seguinte
+        // Remove o bloco YAML inicial (entre ---) para não sujar a análise semântica
         return content.replaceAll("(?s)^---\\n.*?\\n---\\s*", "").trim();
     }
 
     private void saveCache() {
         try {
             File cacheFile = new File(CACHE_FILE);
-
-            // NOVO: Garante que a pasta 'cache' existe antes de salvar
             File parentDir = cacheFile.getParentFile();
+
             if (parentDir != null && !parentDir.exists()) {
-                boolean created = parentDir.mkdirs();
-                if (created) {
-                    log.info("Created cache directory: {}", parentDir.getAbsolutePath());
-                }
+                parentDir.mkdirs();
             }
 
             this.vectorStore.save(cacheFile);
-            log.info("Vector store saved to: {}", cacheFile.getAbsolutePath());
+            log.info("Cache de vetores guardado com sucesso.");
 
         } catch (Exception e) {
-            log.error("Failed to save vector store cache", e);
+            log.error("Falha ao guardar cache do vector store", e);
         }
     }
 }

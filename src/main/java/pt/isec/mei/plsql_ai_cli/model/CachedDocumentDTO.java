@@ -16,24 +16,16 @@ public class CachedDocumentDTO {
 
     private String id;
 
-    // O Spring AI às vezes chama de 'text' ou 'content' no JSON, dependendo da versão.
-    // Vamos mapear ambos para garantir.
     @JsonProperty("text")
     private String text;
 
     @JsonProperty("content")
-    private String content; // Fallback
+    private String content;
 
     private Map<String, Object> metadata;
 
-    // O CAMPO QUE NÓS QUEREMOS
     private List<Double> embedding;
 
-    /**
-     * Converte este DTO para o objeto Document do Spring AI,
-     * mas preservando o vetor num formato que possamos usar.
-     * Como a classe Document não aceita vetor, retornamos um par ou usamos o DTO diretamente no clustering.
-     */
     public RealVector getRealVector() {
         if (embedding == null || embedding.isEmpty()) {
             return null;
@@ -47,7 +39,6 @@ public class CachedDocumentDTO {
     }
 
     public Document toDocument() {
-        // Cria um Document padrão para uso futuro, se necessário
         return new Document(getBody(), metadata);
     }
 }

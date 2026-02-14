@@ -7,71 +7,42 @@ import java.util.List;
 
 public class VectorUtils {
 
-
     /**
-     * NOVO: Converte float[] (padrão do Spring AI M6) para RealVector
-     */
-    public static RealVector toRealVector(float[] embedding) {
-        if (embedding == null || embedding.length == 0) {
-            throw new IllegalArgumentException("Embedding array cannot be null or empty");
-        }
-        // Apache Commons Math precisa de double[], então convertemos
-        double[] doubleArray = new double[embedding.length];
-        for (int i = 0; i < embedding.length; i++) {
-            doubleArray[i] = embedding[i];
-        }
-        return new ArrayRealVector(doubleArray);
-    }
-
-
-    /**
-     * Converte a Lista de Doubles (Spring AI) para RealVector (Commons Math).
+     * Converte List<Double> (JSON/Cache) para RealVector.
      */
     public static RealVector toRealVector(List<Double> embedding) {
         if (embedding == null || embedding.isEmpty()) {
-            throw new IllegalArgumentException("Embedding list cannot be null or empty");
+            throw new IllegalArgumentException("A lista de embedding não pode ser nula");
         }
-        // Converte List<Double> para double[]
         double[] array = embedding.stream().mapToDouble(Double::doubleValue).toArray();
         return new ArrayRealVector(array);
     }
 
     /**
-     * Calcula a Similaridade de Cosseno entre dois vetores.
-     * Retorno: 0.0 a 1.0 (onde 1.0 é idêntico).
+     * Converte float[] (Spring AI M6) para RealVector.
      */
-    public static double cosineSimilarity(RealVector v1, RealVector v2) {
-        if (v1.getDimension() != v2.getDimension()) {
-            throw new IllegalArgumentException("Vectors must have the same dimension");
+    public static RealVector fromFloatArray(float[] embedding) {
+        if (embedding == null || embedding.length == 0) {
+            throw new IllegalArgumentException("O array de float não pode ser nulo");
         }
-        // Cosseno = (A . B) / (|A| * |B|)
+        double[] doubles = new double[embedding.length];
+        for (int i = 0; i < embedding.length; i++) {
+            doubles[i] = (double) embedding[i];
+        }
+        return new ArrayRealVector(doubles);
+    }
+
+    public static double cosineSimilarity(RealVector v1, RealVector v2) {
+        if (v1 == null || v2 == null) return 0.0;
         return v1.cosine(v2);
     }
 
-    /**
-     * Sobrecarga para facilitar o uso direto com Listas
-     */
-    public static double cosineSimilarity(List<Double> l1, List<Double> l2) {
-        return cosineSimilarity(toRealVector(l1), toRealVector(l2));
-    }
-
-    /**
-     * Calcula o Centróide (Média) de uma lista de vetores.
-     * Usado para K-Means e para achar o Medoide.
-     */
     public static RealVector calculateCentroid(List<RealVector> vectors) {
-        if (vectors == null || vectors.isEmpty()) {
-            throw new IllegalArgumentException("Vector list cannot be empty");
-        }
-
-        int dim = vectors.get(0).getDimension();
-        RealVector sum = new ArrayRealVector(dim); // Vetor de zeros
-
+        if (vectors == null || vectors.isEmpty()) return null;
+        RealVector sum = new ArrayRealVector(vectors.get(0).getDimension());
         for (RealVector v : vectors) {
-            sum = sum.add(v); // Soma vetorial
+            sum = sum.add(v);
         }
-
-        return sum.mapDivide(vectors.size()); // Divide cada elemento pelo total (média)
+        return sum.mapDivide(vectors.size());
     }
-
 }
