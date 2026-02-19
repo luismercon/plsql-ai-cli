@@ -14,12 +14,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
 public class ClusteringService {
 
     private static final double DUPLICATE_THRESHOLD = 0.96;
+    private static final double ALTERNATIVE_CLUSTER_THRESHOLD = 0.90;
+    private static final double MAX_SIMILARITY_SCORE = 1.0;
+
 
     public List<ProcedureAnalysisResult> analyzeAllProcedures(List<CachedDocumentDTO> allDocs) {
         if (allDocs == null || allDocs.isEmpty()) {
@@ -40,41 +44,32 @@ public class ClusteringService {
         return finalResults;
     }
 
-    private String extractProcedureFromPathOrFile(String path) {
-        if (path == null || path.isBlank()) {
-            return "unknown";
-        }
 
-
-        String[] parts = path.replace("\\", "/").split("/");
-
-        if (parts.length >= 2) {
-            return parts[parts.length - 2];
-        }
-
-        return parts[0].replace(".md", "");
-    }
-
-    public List<Document> deduplicate(List<CachedDocumentDTO> dtos) {
-        List<Document> uniqueDocs = new ArrayList<>();
-        int size = dtos.size();
-        boolean[] merged = new boolean[size];
+    private List<Document> deduplicate(List<CachedDocumentDTO> dtos) {
         List<RealVector> vectors = dtos.stream()
                 .map(dto -> VectorUtils.toRealVector(dto.getEmbedding()))
                 .toList();
 
-        for (int i = 0; i < size; i++) {
-            if (merged[i]) continue;
-            int weight = 1;
-            for (int j = i + 1; j < size; j++) {
-                if (!merged[j] && VectorUtils.cosineSimilarity(vectors.get(i), vectors.get(j)) >= DUPLICATE_THRESHOLD) {
-                    weight++;
-                    merged[j] = true;
-                }
+        List<Integer> representatives = new ArrayList<>();
+        Map<Integer, Integer> weights = new HashMap<>();
+
+        IntStream.range(0, dtos.size()).forEach(i -> {
+            int match = representatives.stream()
+                    .filter(rep -> VectorUtils.cosineSimilarity(vectors.get(rep), vectors.get(i)) >= DUPLICATE_THRESHOLD)
+                    .findFirst()
+                    .orElse(-1);
+
+            if (match == -1) {
+                representatives.add(i);
+                weights.put(i, 1);
+            } else {
+                weights.merge(match, 1, Integer::sum);
             }
-            uniqueDocs.add(createWeightedDocument(dtos.get(i), weight));
-        }
-        return uniqueDocs;
+        });
+
+        return representatives.stream()
+                .map(i -> createWeightedDocument(dtos.get(i), weights.get(i)))
+                .toList();
     }
 
     private ProcedureAnalysisResult performFullAnalysis(String procedureName, List<Document> uniqueDocs, int totalFiles) {
@@ -87,14 +82,14 @@ public class ClusteringService {
         List<Document> cluster0 = new ArrayList<>();
         List<Document> cluster1 = new ArrayList<>();
 
-        RealVector winnerVec = VectorUtils.toRealVector((List<Double>) winner.getMetadata().get("custom_embedding"));
+        RealVector winnerVec = VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(winner));
 
         for (Document doc : uniqueDocs) {
-            RealVector currentVec = VectorUtils.toRealVector((List<Double>) doc.getMetadata().get("custom_embedding"));
+            RealVector currentVec = VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(doc));
             double score = VectorUtils.cosineSimilarity(winnerVec, currentVec);
 
-            // Threshold de Rigor: se baixar de 0.90, consideramos uma interpretação "Alternativa"
-            if (score >= 0.90) {
+            // Threshold de Rigor: se baixar de ALTERNATIVE_CLUSTER_THRESHOLD, consideramos uma interpretação "Alternativa"
+            if (score >= ALTERNATIVE_CLUSTER_THRESHOLD) {
                 cluster0.add(doc);
             } else {
                 cluster1.add(doc);
@@ -117,7 +112,7 @@ public class ClusteringService {
                 decision.equals("CONSENSO"),
                 clusters,
                 interRepSimilarity,
-                1.0 - interRepSimilarity,
+                MAX_SIMILARITY_SCORE - interRepSimilarity,
                 decision,
                 winner,
                 cluster1.isEmpty() ? null : cluster1.get(0) // O líder da divergência
@@ -125,11 +120,13 @@ public class ClusteringService {
     }
 
     private double calculateAverageSimilarity(Document winner, List<Document> others) {
-        if (others.size() <= 1) return 1.0;
-        RealVector winnerVec = VectorUtils.toRealVector((List<Double>) winner.getMetadata().get("custom_embedding"));
+        if (others.size() <= 1) {
+            return MAX_SIMILARITY_SCORE;
+        }
+        RealVector winnerVec = VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(winner));
         return others.stream()
-                .mapToDouble(d -> VectorUtils.cosineSimilarity(winnerVec, VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"))))
-                .average().orElse(1.0);
+                .mapToDouble(d -> VectorUtils.cosineSimilarity(winnerVec, VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(d))))
+                .average().orElse(MAX_SIMILARITY_SCORE);
     }
 
     private Document createWeightedDocument(CachedDocumentDTO dto, int weight) {
@@ -147,4 +144,22 @@ public class ClusteringService {
 
         return new Document(dto.getBody(), metadata);
     }
+
+
+
+    private String extractProcedureFromPathOrFile(String path) {
+        if (path == null || path.isBlank()) {
+            return "unknown";
+        }
+
+
+        String[] parts = path.replace("\\", "/").split("/");
+
+        if (parts.length >= 2) {
+            return parts[parts.length - 2];
+        }
+
+        return parts[0].replace(".md", "");
+    }
+
 }

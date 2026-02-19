@@ -39,7 +39,6 @@ public class ReportService {
         StringBuilder sb = new StringBuilder();
         sb.append("# RELATÓRIO DE ANÁLISE SEMÂNTICA (SPL INFORMIX - CODESTRAL)\n");
         sb.append("**Data:** ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("  \n");
-        sb.append("**Fundamentação:** Weighted-AST & Semantic Captioning (SQL2Text)  \n");
         sb.append("---\n\n");
 
         for (ProcedureAnalysisResult res : results) {
@@ -64,7 +63,7 @@ public class ReportService {
 
             sb.append("\n### 📊 Distribuição dos Clusters\n");
             // Obtemos o vetor do vencedor para calcular o score individual de cada ficheiro
-            RealVector winnerVec = VectorUtils.toRealVector((List<Double>) res.recommendedWinner().getMetadata().get("custom_embedding"));
+            RealVector winnerVec = VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(res.recommendedWinner()));
 
             for (Map.Entry<Integer, List<Document>> entry : res.clusters().entrySet()) {
                 sb.append(String.format("\n#### 🔷 CLUSTER %d (%d docs)\n", entry.getKey(), entry.getValue().size()));
@@ -72,7 +71,7 @@ public class ReportService {
                     String filename = (String) d.getMetadata().get("filename");
 
                     // Cálculo do Score Individual vs Vencedor
-                    RealVector currentVec = VectorUtils.toRealVector((List<Double>) d.getMetadata().get("custom_embedding"));
+                    RealVector currentVec = VectorUtils.toRealVector(VectorUtils.getEmbeddingFromMetadata(d));
                     double individualScore = VectorUtils.cosineSimilarity(winnerVec, currentVec);
 
                     boolean isRep = d.equals(res.recommendedWinner()) || d.equals(res.alternativeOption());

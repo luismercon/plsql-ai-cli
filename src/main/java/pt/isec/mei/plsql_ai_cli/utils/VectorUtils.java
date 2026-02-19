@@ -2,6 +2,7 @@ package pt.isec.mei.plsql_ai_cli.utils;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
+import org.springframework.ai.document.Document;
 
 import java.util.List;
 
@@ -19,17 +20,22 @@ public class VectorUtils {
     }
 
     /**
-     * Converte float[] (Spring AI M6) para RealVector.
+     * Safely extracts the embedding vector from document metadata.
+     * @param doc The document containing the embedding in metadata
+     * @return The embedding as a List of Doubles
+     * @throws IllegalStateException if the embedding is missing or has incorrect type
      */
-    public static RealVector fromFloatArray(float[] embedding) {
-        if (embedding == null || embedding.length == 0) {
-            throw new IllegalArgumentException("O array de float não pode ser nulo");
+    @SuppressWarnings("unchecked")
+    public static List<Double> getEmbeddingFromMetadata(Document doc) {
+        Object embeddingObj = doc.getMetadata().get("custom_embedding");
+        if (embeddingObj instanceof List<?> list) {
+            // Validate that the list contains Doubles (check first element if not empty)
+            if (list.isEmpty() || list.get(0) instanceof Double) {
+                return (List<Double>) list;
+            }
         }
-        double[] doubles = new double[embedding.length];
-        for (int i = 0; i < embedding.length; i++) {
-            doubles[i] = (double) embedding[i];
-        }
-        return new ArrayRealVector(doubles);
+        throw new IllegalStateException("custom_embedding must be a List<Double> but was: " +
+                (embeddingObj != null ? embeddingObj.getClass().getName() : "null"));
     }
 
     public static double cosineSimilarity(RealVector v1, RealVector v2) {
@@ -37,12 +43,4 @@ public class VectorUtils {
         return v1.cosine(v2);
     }
 
-    public static RealVector calculateCentroid(List<RealVector> vectors) {
-        if (vectors == null || vectors.isEmpty()) return null;
-        RealVector sum = new ArrayRealVector(vectors.get(0).getDimension());
-        for (RealVector v : vectors) {
-            sum = sum.add(v);
-        }
-        return sum.mapDivide(vectors.size());
-    }
 }
