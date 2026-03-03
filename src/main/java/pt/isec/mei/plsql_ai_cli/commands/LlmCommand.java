@@ -39,7 +39,7 @@ public class LlmCommand {
         System.out.println("==================================================");
         System.out.println("Este processo analisará TODAS as procedures na pasta de entrada.");
         System.out.println("Cada procedure será submetida a 9 variantes:");
-        System.out.println("  • Estratégias: Single Shot, Few Shot, Chain of Thought");
+        System.out.println("  • Estratégias: Zero Shot, Few Shot, Chain of Thought");
         System.out.println("  • Contextos: Clean, Raw, Dirty");
         System.out.println("\nNota: Este processo pode ser demorado dependendo do hardware local.");
         System.out.println("--------------------------------------------------\n");

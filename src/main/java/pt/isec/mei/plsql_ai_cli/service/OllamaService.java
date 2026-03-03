@@ -34,8 +34,8 @@ public class OllamaService {
     private final ChatModel chatModel;
     private final DocumentService documentService;
 
-    @Value("classpath:prompts/single-shot-template.st")
-    protected Resource singleShotPrompt;
+    @Value("classpath:prompts/zero-shot-template.st")
+    protected Resource zeroShotPrompt;
 
     @Value("classpath:prompts/few-shot-template.st")
     protected Resource fewShotPrompt;
@@ -129,7 +129,7 @@ public class OllamaService {
         return switch (strategy) {
             case "few-shot" -> fewShotPrompt;
             case "chain-of-thought" -> chainOfThoughtPrompt;
-            default -> singleShotPrompt;
+            default -> zeroShotPrompt;
         };
     }
 

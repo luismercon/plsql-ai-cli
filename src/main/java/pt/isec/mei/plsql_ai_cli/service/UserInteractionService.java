@@ -44,7 +44,7 @@ public class UserInteractionService {
     public String promptForStrategy() {
         LineReader lineReader = createLineReader();
         System.out.println("\nSelect Prompt Strategy:");
-        System.out.println("1. Single Shot");
+        System.out.println("1. Zero Shot");
         System.out.println("2. Few Shot");
         System.out.println("3. Chain of Thought");
 
@@ -52,7 +52,7 @@ public class UserInteractionService {
         String result = switch (choice) {
             case "2" -> PromptStrategy.FEW_SHOT.getStrategy();
             case "3" -> PromptStrategy.CHAIN_OF_THOUGHT.getStrategy();
-            default -> PromptStrategy.SINGLE_SHOT.getStrategy();
+            default -> PromptStrategy.ZERO_SHOT.getStrategy();
         };
 
         log.debug("Selected strategy: {}", result);

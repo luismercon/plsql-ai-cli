@@ -115,7 +115,7 @@ public class ReportService {
         String fn = filename.toLowerCase();
 
         String technique = switch (extractPrefix(fn)) {
-            case "single-shot", "ss" -> "Single-Shot";
+            case "zero-shot", "zs" -> "Zero-Shot";
             case "few-shot", "fs" -> "Few-Shot";
             case "chain-of-thought", "cot" -> "Chain-of-Thought";
             default -> "Unknown";

@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum PromptStrategy {
-    SINGLE_SHOT("single-shot"),
+    ZERO_SHOT("zero-shot"),
     FEW_SHOT("few-shot"),
     CHAIN_OF_THOUGHT("chain-of-thought");
 
