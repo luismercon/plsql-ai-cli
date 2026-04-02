@@ -64,13 +64,12 @@ public class OllamaService {
         log.info("Starting individual analysis. Model: {}. Strategy: {}. Noise: {}", modelName, strategy, noiseLevel);
 
         try {
-            ProcedureDocumentation documentation = executeChat(code, strategy);
-            TokensData tokensData = new TokensData(0, 0, 0);
+            AnalysisResult result = executeChat(code, strategy);
 
             long processingTimeMs = System.currentTimeMillis() - startTime;
 
             String fileName = documentService.saveDocumentationToMarkdown(
-                    documentation, processingTimeMs, tokensData, modelName, procedureName, noiseLevel, strategy
+                    result.doc(), processingTimeMs, result.tokens(), modelName, procedureName, noiseLevel, strategy
             );
             return "Análise concluída e guardada em: " + fileName;
         } catch (Exception e) {
@@ -84,14 +83,13 @@ public class OllamaService {
         String code = getCodeByNoiseLevel(noise.getLevel(), procedureName);
 
         try {
-            ProcedureDocumentation doc = executeChat(code, strategy.getStrategy());
-            return new AnalysisResult(doc, new TokensData(0, 0, 0));
+            return executeChat(code, strategy.getStrategy());
         } catch (Exception e) {
             throw new RuntimeException("Falha na análise batch: " + sqlFile.getName(), e);
         }
     }
 
-    private ProcedureDocumentation executeChat(String code, String strategy) throws IOException {
+    private AnalysisResult executeChat(String code, String strategy) throws IOException {
         BeanOutputConverter<ProcedureDocumentation> outputConverter = new BeanOutputConverter<>(ProcedureDocumentation.class);
 
         String systemPromptContent = new String(systemPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -113,8 +111,22 @@ public class OllamaService {
         Prompt finalPrompt = new Prompt(List.of(systemMessage, promptTemplate.create(map).getInstructions().get(0)), options);
         ChatResponse response = chatModel.call(finalPrompt);
 
+        var usage = response.getMetadata().getUsage();
+        TokensData tokensData;
+        if (usage != null) {
+            tokensData = new TokensData(
+                    usage.getPromptTokens() != null ? (int) (long) usage.getPromptTokens() : 0,
+                    usage.getCompletionTokens() != null ? (int) (long) usage.getCompletionTokens() : 0,
+                    usage.getTotalTokens() != null ? (int) (long) usage.getTotalTokens() : 0
+            );
+        } else {
+            log.warn("Token usage metadata not available in response.");
+            tokensData = new TokensData(0, 0, 0);
+        }
+
         String cleanedJson = extractJson(response.getResult().getOutput().getText());
-        return outputConverter.convert(cleanedJson);
+        ProcedureDocumentation doc = outputConverter.convert(cleanedJson);
+        return new AnalysisResult(doc, tokensData);
     }
 
     private String getCodeByNoiseLevel(String noiseLevel, String procedureName) {
