@@ -71,10 +71,10 @@ public class OllamaService {
             String fileName = documentService.saveDocumentationToMarkdown(
                     result.doc(), processingTimeMs, result.tokens(), modelName, procedureName, noiseLevel, strategy
             );
-            return "Análise concluída e guardada em: " + fileName;
+            return "Analysis complete. Saved to: " + fileName;
         } catch (Exception e) {
-            log.error("Erro na análise individual", e);
-            return "Falha na análise: " + e.getMessage();
+            log.error("Individual analysis failed", e);
+            return "Analysis failed: " + e.getMessage();
         }
     }
 
@@ -85,7 +85,7 @@ public class OllamaService {
         try {
             return executeChat(code, strategy.getStrategy());
         } catch (Exception e) {
-            throw new RuntimeException("Falha na análise batch: " + sqlFile.getName(), e);
+            throw new RuntimeException("Batch analysis failed: " + sqlFile.getName(), e);
         }
     }
 

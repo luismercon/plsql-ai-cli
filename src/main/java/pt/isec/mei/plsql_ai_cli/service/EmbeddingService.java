@@ -25,16 +25,23 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-public class LLMAnalysisService {
+public class EmbeddingService {
 
     private final EmbeddingModel embeddingModel;
     private SimpleVectorStore vectorStore;
+
+    // Caminho para o ficheiro de cache dos vetores
     private static final String CACHE_FILE = "cache/vectors_cache.json";
+
+    // Limite máximo de tokens de completion aceites para vetorização
     private static final int MAX_TOKENS = 8192;
-    private static final Pattern COMPLETION_TOKENS_PATTERN = Pattern.compile("^completion_tokens:\\s*(\\d+)$", Pattern.MULTILINE);
+
+    // Padrão regex para extrair o número de tokens de completion do frontmatter YAML
+    private static final Pattern COMPLETION_TOKENS_PATTERN =
+            Pattern.compile("^completion_tokens:\\s*(\\d+)$", Pattern.MULTILINE);
 
     @Autowired
-    public LLMAnalysisService(EmbeddingModel embeddingModel) {
+    public EmbeddingService(EmbeddingModel embeddingModel) {
         this.embeddingModel = embeddingModel;
     }
 
@@ -44,73 +51,22 @@ public class LLMAnalysisService {
 
         File cache = new File(CACHE_FILE);
         if (cache.exists()) {
-            log.info("A carregar cache de vetores: {}", CACHE_FILE);
+            log.info("Loading vector cache from: {}", CACHE_FILE);
             this.vectorStore.load(cache);
         } else {
-            log.info("Cache de vetores não encontrado. A iniciar nova base.");
+            log.info("Vector cache not found. Starting with an empty store.");
         }
     }
 
-    public String processAndVectorize(String fileName) {
-        String targetFileName = fileName.endsWith(".md") ? fileName : fileName + ".md";
-        Path rootDir = Paths.get("results");
-
-        if (!Files.exists(rootDir)) {
-            log.error("Diretoria de resultados não encontrada.");
-            return "Erro: diretoria de resultados não encontrada.";
-        }
-
-        try {
-            Path foundPath;
-            try (var stream = Files.walk(rootDir)) {
-                foundPath = stream
-                        .filter(p -> !Files.isDirectory(p))
-                        .filter(p -> p.getFileName().toString().equalsIgnoreCase(targetFileName))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("Ficheiro não encontrado: " + targetFileName));
-            }
-
-            String rawContent = Files.readString(foundPath, StandardCharsets.UTF_8);
-            if (rawContent.isEmpty()) return "Erro: ficheiro vazio.";
-
-            OptionalInt completionTokens = parseCompletionTokens(rawContent);
-            if (completionTokens.isEmpty()) {
-                log.warn("Ignorado (sem frontmatter): {}", targetFileName);
-                return "Ignorado: " + targetFileName + " não contém frontmatter.";
-            }
-            if (completionTokens.getAsInt() > MAX_TOKENS) {
-                log.warn("Ignorado (completion_tokens={} > {}): {}", completionTokens.getAsInt(), MAX_TOKENS, targetFileName);
-                return String.format("Ignorado: %s excede o limite de tokens (%d > %d).",
-                        targetFileName, completionTokens.getAsInt(), MAX_TOKENS);
-            }
-
-            String cleanContent = removeFrontmatter(rawContent);
-            if (cleanContent.isEmpty()) return "Erro: conteúdo vazio após remover frontmatter.";
-
-            String relativePath = rootDir.relativize(foundPath).toString();
-
-            Document document = new Document(cleanContent, Map.of(
-                    "filename", targetFileName,
-                    "path", relativePath,
-                    "type", "documentation_output"
-            ));
-
-            log.info("A gerar embedding para {}...", targetFileName);
-            this.vectorStore.add(List.of(document));
-            saveCache();
-
-            return "Sucesso: " + targetFileName + " vetorizado.";
-
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao processar ficheiro markdown", e);
-        }
-    }
-
+    /**
+     * Vetoriza todos os ficheiros Markdown encontrados recursivamente em results/.
+     * Ficheiros sem frontmatter ou que excedam MAX_TOKENS são ignorados.
+     */
     public VectorizeResult vectorizeAll() {
         Path rootDir = Paths.get("results");
         if (!Files.exists(rootDir)) return new VectorizeResult(0, List.of());
 
-        log.info("A iniciar vetorização em massa de todos os ficheiros em results/...");
+        log.info("Starting bulk vectorization of all files in results/...");
 
         List<Document> documentsBatch = new ArrayList<>();
         List<String> skipped = new ArrayList<>();
@@ -129,12 +85,12 @@ public class LLMAnalysisService {
 
                     OptionalInt completionTokens = parseCompletionTokens(rawContent);
                     if (completionTokens.isEmpty()) {
-                        log.warn("Ignorado (sem frontmatter): {}", filename);
-                        skipped.add(filename + " (sem frontmatter)");
+                        log.warn("Skipped (no frontmatter): {}", filename);
+                        skipped.add(filename + " (no frontmatter)");
                         continue;
                     }
                     if (completionTokens.getAsInt() > MAX_TOKENS) {
-                        log.warn("Ignorado (completion_tokens={} > {}): {}", completionTokens.getAsInt(), MAX_TOKENS, filename);
+                        log.warn("Skipped (completion_tokens={} > {}): {}", completionTokens.getAsInt(), MAX_TOKENS, filename);
                         skipped.add(String.format("%s (%d completion tokens)", filename, completionTokens.getAsInt()));
                         continue;
                     }
@@ -152,18 +108,18 @@ public class LLMAnalysisService {
                     count++;
 
                 } catch (Exception e) {
-                    log.error("Erro ao ler ficheiro: {}", path, e);
+                    log.error("Error reading file: {}", path, e);
                 }
             }
 
             if (!documentsBatch.isEmpty()) {
-                log.info("A enviar {} documentos para o modelo de embeddings...", documentsBatch.size());
+                log.info("Sending {} document(s) to the embedding model...", documentsBatch.size());
                 this.vectorStore.add(documentsBatch);
                 saveCache();
             }
 
         } catch (IOException e) {
-            log.error("Erro ao percorrer diretoria de resultados", e);
+            log.error("Error traversing results directory", e);
         }
 
         return new VectorizeResult(count, skipped);
@@ -177,7 +133,7 @@ public class LLMAnalysisService {
     }
 
     private String removeFrontmatter(String content) {
-        // Remove o bloco YAML inicial (entre ---) para não sujar a análise semântica
+        // Remove o bloco YAML inicial (entre ---) para não enviesar a análise semântica
         return content.replaceAll("(?s)^---\\n.*?\\n---\\s*", "").trim();
     }
 
@@ -191,10 +147,11 @@ public class LLMAnalysisService {
             }
 
             this.vectorStore.save(cacheFile);
-            log.info("Cache de vetores guardado com sucesso.");
+            log.info("Vector cache saved successfully.");
 
         } catch (Exception e) {
-            log.error("Falha ao guardar cache do vector store", e);
+            log.error("Failed to save vector store cache", e);
         }
     }
 }
+

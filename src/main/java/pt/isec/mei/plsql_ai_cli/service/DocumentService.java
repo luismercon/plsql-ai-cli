@@ -36,11 +36,11 @@ public class DocumentService {
             String filePath = String.format("procedures/%s.sql", fileName);
             Path path = Paths.get(filePath);
             if (!Files.exists(path)) {
-                throw new RuntimeException("Ficheiro SQL não encontrado: " + filePath);
+                throw new RuntimeException("SQL file not found: " + filePath);
             }
             return Files.readString(path, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao ler o ficheiro SQL Informix", e);
+            throw new RuntimeException("Error reading Informix SQL file", e);
         }
     }
 
@@ -129,7 +129,7 @@ public class DocumentService {
         try {
             saveDocumentationToMarkdown(doc, durationMs, tokens, this.modelName, procedureName, noise.getLevel(), strategy.getStrategy());
         } catch (IOException e) {
-            log.error("Erro ao guardar resultado batch para {}", procedureName, e);
+            log.error("Error saving batch result for {}", procedureName, e);
         }
     }
 
@@ -185,8 +185,8 @@ public class DocumentService {
 
     public String listSqlFiles() {
         List<File> files = getAllSqlFiles();
-        if (files.isEmpty()) return "Nenhuma procedure encontrada.";
-        return "Procedures disponíveis:\n" + files.stream()
+        if (files.isEmpty()) return "No procedures found.";
+        return "Available procedures:\n" + files.stream()
                 .map(f -> "- " + f.getName().replace(".sql", ""))
                 .sorted().collect(Collectors.joining("\n"));
     }

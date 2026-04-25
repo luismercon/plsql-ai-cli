@@ -24,12 +24,12 @@ public class GenerationOrchestratorService {
     public void runBatchGeneration() {
         List<File> files = documentService.getAllSqlFiles();
         if (files.isEmpty()) {
-            log.warn("Nenhum ficheiro SQL encontrado na pasta 'procedures'.");
+            log.warn("No SQL files found in the 'procedures' folder.");
             return;
         }
 
         int totalSteps = files.size() * PromptStrategy.values().length * NoiseLevel.values().length;
-        System.out.println("Iniciando Processamento em Batch: " + totalSteps + " operações em fila.\n");
+        System.out.println("Starting batch processing: " + totalSteps + " operations queued.\n");
 
         try (ProgressBar pb = new ProgressBarBuilder()
                 .setTaskName("Batch Gen")
@@ -63,7 +63,7 @@ public class GenerationOrchestratorService {
                             );
 
                         } catch (Exception e) {
-                            log.error("Erro ao processar {}: {}", taskName, e.getMessage());
+                            log.error("Error processing {}: {}", taskName, e.getMessage());
                         } finally {
                             pb.step();
                         }
@@ -71,6 +71,6 @@ public class GenerationOrchestratorService {
                 }
             }
         }
-        log.info("Geração em batch concluída.");
+        log.info("Batch generation complete.");
     }
 }

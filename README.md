@@ -60,18 +60,31 @@ mvnw.cmd spring-boot:run
 
 ```
 
-### Comandos Principais
+### Comandos Disponíveis
 
-* **`list`**: Lista todos os procedimentos disponíveis na pasta `procedures`. Valida automaticamente se a pasta e os
-  arquivos existem.
-* **`analyze`**: Realiza uma análise individual e guiada. Você escolherá o arquivo, a estratégia de *prompt* e o nível
-  de ruído para gerar uma única documentação.
-* **`cluster`**: Executa o pipeline completo de análise de estabilidade.
-* Gera 9 variantes de documentação (Combinação de: *Single-Shot*, *Few-Shot*, *Chain-of-Thought* vs *Raw*, *Clean*,
-  *Dirty*).
-* Realiza a vetorização (sem o *frontmatter* para evitar ruídos).
-* Executa a deduplicação e o agrupamento (*clustering*).
-* Elege o **Medoide** (o arquivo real mais representativo) para o relatório final.
+Todos os comandos estão centralizados num único componente e podem ser listados a qualquer momento com `help`.
+
+| Comando      | Descrição                                                                                                         |
+|--------------|-------------------------------------------------------------------------------------------------------------------|
+| `list`       | Lista todos os procedimentos disponíveis na pasta `procedures`. Valida automaticamente se a pasta e os arquivos existem. |
+| `analyze`    | Análise individual e guiada. Solicita interativamente o ficheiro, a estratégia de *prompt* e o nível de ruído.    |
+| `batch`      | Gera as 9 variantes de documentação (3 estratégias × 3 níveis de ruído) para **todas** as procedures em `procedures/`. |
+| `vectorize`  | Vetoriza todos os ficheiros Markdown gerados em `results/` e guarda os embeddings na cache local.                 |
+| `cluster`    | Executa a análise de clustering sobre a cache de vetores e gera as métricas de estabilidade (`.md` + `.csv`) em `reports/`. |
+
+### Sequência do Pipeline
+
+Para executar o pipeline completo de estabilidade semântica, siga esta ordem:
+
+```
+batch  →  vectorize  →  cluster
+```
+
+1. **`batch`** — gera toda a documentação multi-estratégia.
+2. **`vectorize`** — converte os resultados em vetores semânticos.
+3. **`cluster`** — analisa o consenso e elege o medoide representativo.
+
+> Para uma análise rápida de uma única procedure, use apenas `analyze` (não requer `batch` nem `vectorize`).
 
 ---
 

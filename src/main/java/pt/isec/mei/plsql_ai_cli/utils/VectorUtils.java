@@ -13,7 +13,7 @@ public class VectorUtils {
      */
     public static RealVector toRealVector(List<Double> embedding) {
         if (embedding == null || embedding.isEmpty()) {
-            throw new IllegalArgumentException("A lista de embedding não pode ser nula");
+            throw new IllegalArgumentException("Embedding list cannot be null or empty");
         }
         double[] array = embedding.stream().mapToDouble(Double::doubleValue).toArray();
         return new ArrayRealVector(array);

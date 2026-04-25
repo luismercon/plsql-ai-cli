@@ -22,13 +22,13 @@ public class CacheLoadService {
         File file = new File(CACHE_FILE);
 
         if (!file.exists()) {
-            log.error("Ficheiro de cache não encontrado em: {}", file.getAbsolutePath());
+            log.error("Cache file not found at: {}", file.getAbsolutePath());
             return new ArrayList<>();
         }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            log.info("A carregar vetores do cache JSON: {}", file.getAbsolutePath());
+            log.info("Loading vector embeddings from JSON cache: {}", file.getAbsolutePath());
 
             // O SimpleVectorStore do Spring AI persiste os dados como um Map (ID -> Documento)
             Map<String, CachedDocumentDTO> data = mapper.readValue(
@@ -37,11 +37,11 @@ public class CacheLoadService {
                     }
             );
 
-            log.info("Sucesso: {} documentos com embeddings carregados.", data.size());
+            log.info("Success: {} document(s) with embeddings loaded.", data.size());
             return new ArrayList<>(data.values());
 
         } catch (IOException e) {
-            log.error("Erro ao processar o JSON do cache", e);
+            log.error("Error parsing cache JSON", e);
             return new ArrayList<>();
         }
     }
