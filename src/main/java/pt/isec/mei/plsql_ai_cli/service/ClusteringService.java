@@ -52,6 +52,7 @@ public class ClusteringService {
 
         List<Integer> representatives = new ArrayList<>();
         Map<Integer, Integer> weights = new HashMap<>();
+        Map<Integer, List<String>> mergedFiles = new HashMap<>();
 
         IntStream.range(0, dtos.size()).forEach(i -> {
             int match = representatives.stream()
@@ -62,13 +63,18 @@ public class ClusteringService {
             if (match == -1) {
                 representatives.add(i);
                 weights.put(i, 1);
+                mergedFiles.put(i, new ArrayList<>());
             } else {
                 weights.merge(match, 1, Integer::sum);
+                String filename = (String) dtos.get(i).getMetadata().get("filename");
+                if (filename != null) {
+                    mergedFiles.get(match).add(filename);
+                }
             }
         });
 
         return representatives.stream()
-                .map(i -> createWeightedDocument(dtos.get(i), weights.get(i)))
+                .map(i -> createWeightedDocument(dtos.get(i), weights.get(i), mergedFiles.get(i)))
                 .toList();
     }
 
@@ -129,10 +135,11 @@ public class ClusteringService {
                 .average().orElse(MAX_SIMILARITY_SCORE);
     }
 
-    private Document createWeightedDocument(CachedDocumentDTO dto, int weight) {
+    private Document createWeightedDocument(CachedDocumentDTO dto, int weight, List<String> mergedDuplicates) {
         Map<String, Object> metadata = new HashMap<>(dto.getMetadata());
         metadata.put("cluster_weight", weight);
         metadata.put("custom_embedding", dto.getEmbedding());
+        metadata.put("merged_duplicates", mergedDuplicates != null ? mergedDuplicates : new ArrayList<>());
 
         // Injetamos o nome correto da procedure para que o ReportService o encontre facilmente
         String fullPath = (String) metadata.get("path");

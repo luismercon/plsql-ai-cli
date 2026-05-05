@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 @Service
 @Slf4j
@@ -37,7 +38,7 @@ public class ReportService {
 
     private String buildReportString(List<ProcedureAnalysisResult> results) {
         StringBuilder sb = new StringBuilder();
-        sb.append("# RELATÓRIO DE ANÁLISE SEMÂNTICA (SPL INFORMIX - CODESTRAL)\n");
+        sb.append("# RELATÓRIO DE ANÁLISE SEMÂNTICA (SPL INFORMIX - MISTRAL-SMALL3.2)\n");
         sb.append("**Data:** ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("  \n");
         sb.append("---\n\n");
 
@@ -76,11 +77,21 @@ public class ReportService {
 
                     boolean isRep = d.equals(res.recommendedWinner()) || d.equals(res.alternativeOption());
 
-                    sb.append(String.format("- %s `%s` | **Score:** %.4f | **Técnica:** %s\n",
+                    @SuppressWarnings("unchecked")
+                    List<String> mergedDups = (List<String>) d.getMetadata().getOrDefault("merged_duplicates", Collections.emptyList());
+                    int mergedCount = mergedDups.size();
+
+                    sb.append(String.format("- %s `%s` | **Score:** %.4f | **Técnica:** %s%s\n",
                             isRep ? "👑" : "-",
                             filename,
                             individualScore,
-                            translateTechnique(filename)));
+                            translateTechnique(filename),
+                            mergedCount > 0 ? String.format(" | **Absorveu:** %d duplicado(s)", mergedCount) : ""));
+
+                    for (String dup : mergedDups) {
+                        sb.append(String.format("  - ↳ `%s` *(duplicado semântico)* | **Técnica:** %s\n",
+                                dup, translateTechnique(dup)));
+                    }
                 }
             }
             sb.append("\n---\n\n");

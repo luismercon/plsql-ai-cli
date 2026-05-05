@@ -17,8 +17,8 @@ verificar o consenso entre diferentes estratégias de *prompting* e níveis de r
 * **Modelos Recomendados** (essenciais para análise de código e semântica):
 
 ```bash
-ollama pull codestral:22b        # Especializado em código
-ollama pull nomic-embed-text    # Especializado em vetorização (embeddings)
+ollama pull mistral-small3.2:24b  # Especializado em código
+ollama pull nomic-embed-text      # Especializado em vetorização (embeddings)
 
 ```
 
@@ -43,7 +43,7 @@ A configuração é feita no arquivo `src/main/resources/application.properties`
 # URL Base do Ollama
 spring.ai.ollama.base-url=http://localhost:11434
 # Configuração de Modelos
-spring.ai.ollama.chat.options.model=codestral:22b
+spring.ai.ollama.chat.options.model=mistral-small3.2:24b
 spring.ai.ollama.embedding.options.model=nomic-embed-text
 # Parâmetros de Geração
 spring.ai.ollama.chat.options.temperature=0.4
@@ -95,8 +95,7 @@ A aplicação segue um rigoroso processo científico para garantir que a documen
 1. **Geração Multi-Estratégia**: O sistema gera documentações variando o Prompt e o estado do código. O estado **"Clean"
    ** remove todos os comentários originais, enquanto o **"Dirty"** introduz ruídos para testar a resiliência da IA.
 2. **Vetorização (Embeddings)**: Utiliza o modelo `nomic-embed-text` para transformar texto em coordenadas matemáticas.
-3. **Deduplicação e Clustering**: Documentos com similaridade > 0.96 são fundidos. O sistema então agrupa as
-   interpretações. Se houver divergência lógica, múltiplos clusters são criados.
+3. **Deduplicação e Clustering**: Documentos com similaridade ≥ 0.96 são fundidos num único representante. Os ficheiros absorvidos são listados no relatório como duplicados semânticos, mantendo total rastreabilidade das 9 execuções. O sistema então agrupa as interpretações restantes. Se houver divergência lógica, múltiplos clusters são criados.
 4. **Eleição de Medoide**: Em vez de uma média aritmética (centroide), o sistema escolhe o documento **real** que está
    no centro do cluster como representante.
 5. **Relatório**: O sistema gera um relatório final que pode serve como base para a escolha das versões de documentação
@@ -126,7 +125,7 @@ Controla a diversidade da saída:
 * **EmbeddingService**: Lida com a geração e cache de vetores semânticos.
 * **ClusteringService**: Implementa o algoritmo de agrupamento e eleição de medoides.
 * **OllamaService**: Responsável pela comunicação direta com a API local do Ollama.
-* **ReportService**: Consolida os dados estatísticos e qualitativos em relatórios Markdown em `results/reports/`.
+* **ReportService**: Consolida os dados estatísticos e qualitativos em relatórios Markdown e CSV em `reports/`. Cada representante de cluster exibe os ficheiros semanticamente duplicados que absorveu, garantindo total rastreabilidade das 9 execuções.
 
 ## Segurança
 

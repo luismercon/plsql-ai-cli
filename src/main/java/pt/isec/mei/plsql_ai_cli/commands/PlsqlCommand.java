@@ -93,6 +93,11 @@ public class PlsqlCommand {
                 result.skipped().forEach(f -> sb.append("  - ").append(f).append(System.lineSeparator()));
             }
 
+            if (!result.failed().isEmpty()) {
+                sb.append(String.format("%nFailed (%d):%n", result.failed().size()));
+                result.failed().forEach(f -> sb.append("  - ").append(f).append(System.lineSeparator()));
+            }
+
             return sb.toString().trim();
 
         } catch (Exception e) {

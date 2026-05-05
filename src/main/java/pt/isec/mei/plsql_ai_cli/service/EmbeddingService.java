@@ -19,9 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 @Service
 @Slf4j
@@ -33,12 +31,8 @@ public class EmbeddingService {
     // Caminho para o ficheiro de cache dos vetores
     private static final String CACHE_FILE = "cache/vectors_cache.json";
 
-    // Limite máximo de tokens de completion aceites para vetorização
-    private static final int MAX_TOKENS = 8192;
-
-    // Padrão regex para extrair o número de tokens de completion do frontmatter YAML
-    private static final Pattern COMPLETION_TOKENS_PATTERN =
-            Pattern.compile("^completion_tokens:\\s*(\\d+)$", Pattern.MULTILINE);
+    // nomic-embed-text has a 2048-token context window; ~3 chars/token → 6000 chars is a safe limit
+    private static final int MAX_EMBED_CHARS = 12000;//8192;
 
     @Autowired
     public EmbeddingService(EmbeddingModel embeddingModel) {
@@ -60,16 +54,16 @@ public class EmbeddingService {
 
     /**
      * Vetoriza todos os ficheiros Markdown encontrados recursivamente em results/.
-     * Ficheiros sem frontmatter ou que excedam MAX_TOKENS são ignorados.
+     * Ficheiros sem frontmatter YAML ou cujo conteúdo exceda MAX_EMBED_CHARS são ignorados.
      */
     public VectorizeResult vectorizeAll() {
         Path rootDir = Paths.get("results");
-        if (!Files.exists(rootDir)) return new VectorizeResult(0, List.of());
+        if (!Files.exists(rootDir)) return new VectorizeResult(0, List.of(), List.of());
 
         log.info("Starting bulk vectorization of all files in results/...");
 
-        List<Document> documentsBatch = new ArrayList<>();
         List<String> skipped = new ArrayList<>();
+        List<String> failed = new ArrayList<>();
         int count = 0;
 
         try (var stream = Files.walk(rootDir)) {
@@ -79,42 +73,51 @@ public class EmbeddingService {
                     .toList();
 
             for (Path path : markdownFiles) {
+                String filename = path.getFileName().toString();
                 try {
                     String rawContent = Files.readString(path, StandardCharsets.UTF_8);
-                    String filename = path.getFileName().toString();
 
-                    OptionalInt completionTokens = parseCompletionTokens(rawContent);
-                    if (completionTokens.isEmpty()) {
+                    if (!rawContent.startsWith("---")) {
                         log.warn("Skipped (no frontmatter): {}", filename);
                         skipped.add(filename + " (no frontmatter)");
-                        continue;
-                    }
-                    if (completionTokens.getAsInt() > MAX_TOKENS) {
-                        log.warn("Skipped (completion_tokens={} > {}): {}", completionTokens.getAsInt(), MAX_TOKENS, filename);
-                        skipped.add(String.format("%s (%d completion tokens)", filename, completionTokens.getAsInt()));
                         continue;
                     }
 
                     String cleanContent = removeFrontmatter(rawContent);
                     if (cleanContent.length() < 10) continue;
 
-                    Document doc = new Document(cleanContent, Map.of(
+                    if (cleanContent.length() > MAX_EMBED_CHARS) {
+                        log.warn("Skipped (content too long: {} chars > {}): {}", cleanContent.length(), MAX_EMBED_CHARS, filename);
+                        skipped.add(String.format("%s (%d chars, exceeds embed limit of %d)", filename, cleanContent.length(), MAX_EMBED_CHARS));
+                        continue;
+                    }
+
+                    // Use filename as deterministic ID — it contains the timestamp, so it is unique and stable across re-runs
+                    Document doc = new Document(filename, cleanContent, Map.of(
                             "filename", filename,
                             "path", rootDir.relativize(path).toString(),
                             "type", "documentation_output"
                     ));
 
-                    documentsBatch.add(doc);
+                    log.debug("Vectorizing: {}", filename);
+                    this.vectorStore.add(List.of(doc));
                     count++;
 
                 } catch (Exception e) {
-                    log.error("Error reading file: {}", path, e);
+                    long fileBytes;
+                    try {
+                        fileBytes = Files.size(path);
+                    } catch (IOException ignored) {
+                        fileBytes = -1;
+                    }
+                    String errorMsg = String.format("%s (file size: %d bytes) → %s", filename, fileBytes, e.getMessage());
+                    log.error("Error vectorizing file: {}", path, e);
+                    System.out.println("ERROR vectorizing: " + errorMsg);
+                    failed.add(errorMsg);
                 }
             }
 
-            if (!documentsBatch.isEmpty()) {
-                log.info("Sending {} document(s) to the embedding model...", documentsBatch.size());
-                this.vectorStore.add(documentsBatch);
+            if (count > 0) {
                 saveCache();
             }
 
@@ -122,15 +125,9 @@ public class EmbeddingService {
             log.error("Error traversing results directory", e);
         }
 
-        return new VectorizeResult(count, skipped);
+        return new VectorizeResult(count, skipped, failed);
     }
 
-    private OptionalInt parseCompletionTokens(String rawContent) {
-        if (!rawContent.startsWith("---")) return OptionalInt.empty();
-        Matcher matcher = COMPLETION_TOKENS_PATTERN.matcher(rawContent);
-        if (!matcher.find()) return OptionalInt.empty();
-        return OptionalInt.of(Integer.parseInt(matcher.group(1)));
-    }
 
     private String removeFrontmatter(String content) {
         // Remove o bloco YAML inicial (entre ---) para não enviesar a análise semântica
