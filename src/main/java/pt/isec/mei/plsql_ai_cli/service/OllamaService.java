@@ -34,8 +34,8 @@ public class OllamaService {
     private final ChatModel chatModel;
     private final DocumentService documentService;
 
-    @Value("classpath:prompts/single-shot-template.st")
-    protected Resource singleShotPrompt;
+    @Value("classpath:prompts/zero-shot-template.st")
+    protected Resource zeroShotPrompt;
 
     @Value("classpath:prompts/few-shot-template.st")
     protected Resource fewShotPrompt;
@@ -46,7 +46,6 @@ public class OllamaService {
     @Value("classpath:prompts/system-template.st")
     protected Resource systemPrompt;
 
-    // ADDED: Inject model name to pass it to the documentation service
     @Value("${spring.ai.ollama.chat.options.model}")
     private String modelName;
 
@@ -56,182 +55,107 @@ public class OllamaService {
         this.documentService = documentService;
     }
 
-    public String analyze(String type, String procedureName, String approach, String promptType) {
-
+    public String analyze(String noiseLevel, String procedureName, String strategy) {
         long startTime = System.currentTimeMillis();
 
-        String code = getCodeBasedOnApproach(approach, type, procedureName);
+        // Determina qual versão do código carregar (Clean, Raw ou Dirty)
+        String code = getCodeByNoiseLevel(noiseLevel, procedureName);
 
-        log.info("Starting to analyze in Ollama service. Type:{}. Model: {}. Approach: {}. Prompt Type: {}", type, modelName, approach, promptType);
-
-        BeanOutputConverter<ProcedureDocumentation> outputConverter = new BeanOutputConverter<>(ProcedureDocumentation.class);
+        log.info("Starting individual analysis. Model: {}. Strategy: {}. Noise: {}", modelName, strategy, noiseLevel);
 
         try {
-            String systemPromptContent = new String(systemPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            AnalysisResult result = executeChat(code, strategy);
 
-            Resource selectedPrompt = choosePromptTemplate(promptType);
-            String prompt = new String(selectedPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            long processingTimeMs = System.currentTimeMillis() - startTime;
 
-            SystemMessage systemMessage = new SystemMessage(systemPromptContent);
-            PromptTemplate promptTemplate = new PromptTemplate(prompt);
-
-            Prompt userPrompt = stuffCodeInUserPrompt(code, outputConverter.getFormat(), promptTemplate);
-
-            Prompt finalMountedPrompt = new Prompt(List.of(systemMessage, userPrompt.getInstructions().get(0)));
-
-            log.info("Sending prompt to Ollama model ...");
-            ChatResponse response = chatModel.call(finalMountedPrompt);
-
-            // Extract and clean JSON from response
-            String rawResponse = response.getResult().getOutput().getText();
-            String cleanedJson = extractJson(rawResponse);
-
-            TokensData tokensData = extractTokensData(response);
-
-            long endTime = System.currentTimeMillis();
-            long processingTimeMs = endTime - startTime;
-
-            log.info("Ollama response time: {} ms", processingTimeMs);
-
-            ProcedureDocumentation documentation = outputConverter.convert(cleanedJson);
-
-            try {
-                // FIXED: Passed modelName as the 4th argument (total 7 arguments)
-                String fileName = documentService.saveDocumentationToMarkdown(
-                        documentation,
-                        processingTimeMs,
-                        tokensData,
-                        modelName,
-                        procedureName,
-                        type,
-                        promptType
-                );
-                return "Analysis completed and saved to: " + fileName;
-            } catch (IOException e) {
-                log.error("Error saving analysis to file", e);
-                return "Analysis completed but failed to save to file: " + e.getMessage();
-            }
-        } catch (IOException e) {
-            log.error("Error reading prompt templates", e);
-            return "Failed to read prompt templates: " + e.getMessage();
+            String fileName = documentService.saveDocumentationToMarkdown(
+                    result.doc(), processingTimeMs, result.tokens(), modelName, procedureName, noiseLevel, strategy
+            );
+            return "Analysis complete. Saved to: " + fileName;
+        } catch (Exception e) {
+            log.error("Individual analysis failed", e);
+            return "Analysis failed: " + e.getMessage();
         }
     }
 
+    public AnalysisResult analyzeForBatch(File sqlFile, PromptStrategy strategy, NoiseLevel noise) {
+        String procedureName = sqlFile.getName().replace(".sql", "");
+        String code = getCodeByNoiseLevel(noise.getLevel(), procedureName);
 
-    private String getCodeBasedOnApproach(String approach, String type, String procedureName) {
-        return switch (approach) {
-            case "technique" -> documentService.cleanCommentsService(procedureName);
-            case "noise" -> codeRouter(type, procedureName);
-            default -> codeRouter(type, procedureName);
-        };
+        try {
+            return executeChat(code, strategy.getStrategy());
+        } catch (Exception e) {
+            throw new RuntimeException("Batch analysis failed: " + sqlFile.getName(), e);
+        }
     }
 
-    private String codeRouter(String type, String procedureName) {
-        return switch (type) {
-            case "clean" -> documentService.cleanCommentsService(procedureName);
+    private AnalysisResult executeChat(String code, String strategy) throws IOException {
+        BeanOutputConverter<ProcedureDocumentation> outputConverter = new BeanOutputConverter<>(ProcedureDocumentation.class);
+
+        String systemPromptContent = new String(systemPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        Resource selectedPrompt = choosePromptTemplate(strategy);
+        String promptContent = new String(selectedPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        SystemMessage systemMessage = new SystemMessage(systemPromptContent);
+        PromptTemplate promptTemplate = new PromptTemplate(promptContent);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", code);
+        map.put("format", outputConverter.getFormat());
+
+        OllamaOptions options = OllamaOptions.builder()
+                .temperature(0.1)
+                .format("json")
+                .build();
+
+        Prompt finalPrompt = new Prompt(List.of(systemMessage, promptTemplate.create(map).getInstructions().get(0)), options);
+        ChatResponse response = chatModel.call(finalPrompt);
+
+        var usage = response.getMetadata().getUsage();
+        TokensData tokensData;
+        if (usage != null) {
+            tokensData = new TokensData(
+                    usage.getPromptTokens() != null ? (int) (long) usage.getPromptTokens() : 0,
+                    usage.getCompletionTokens() != null ? (int) (long) usage.getCompletionTokens() : 0,
+                    usage.getTotalTokens() != null ? (int) (long) usage.getTotalTokens() : 0
+            );
+        } else {
+            log.warn("Token usage metadata not available in response.");
+            tokensData = new TokensData(0, 0, 0);
+        }
+
+        String cleanedJson = extractJson(response.getResult().getOutput().getText());
+        ProcedureDocumentation doc = outputConverter.convert(cleanedJson);
+        return new AnalysisResult(doc, tokensData);
+    }
+
+    private String getCodeByNoiseLevel(String noiseLevel, String procedureName) {
+        return switch (noiseLevel) {
             case "raw" -> documentService.readRawProcedure(procedureName);
             case "dirty" -> documentService.readDirtyProcedure(procedureName);
             default -> documentService.cleanCommentsService(procedureName);
         };
     }
 
-
-    private TokensData extractTokensData(ChatResponse response) {
-        int promptTokens = response.getMetadata().getUsage().getPromptTokens();
-        int completionTokens = response.getMetadata().getUsage().getCompletionTokens();
-        int totalTokens = response.getMetadata().getUsage().getTotalTokens();
-
-        log.info("Prompt Tokens: {}, completion tokens: {}, total: {}", promptTokens, completionTokens, totalTokens);
-
-        return new TokensData(promptTokens, completionTokens, totalTokens);
-    }
-
-    private Prompt stuffCodeInUserPrompt(String code, String format, PromptTemplate promptTemplate) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", code);
-        map.put("format", format);
-        return promptTemplate.create(map);
-    }
-
-    private Resource choosePromptTemplate(String promptType) {
-        log.info("Choosing prompt template for promptType: {}", promptType);
-        return switch (promptType) {
-            case "ss" -> singleShotPrompt;
-            case "fs" -> fewShotPrompt;
-            case "cot" -> chainOfThoughtPrompt;
-            default -> singleShotPrompt;
+    private Resource choosePromptTemplate(String strategy) {
+        return switch (strategy) {
+            case "few-shot" -> fewShotPrompt;
+            case "chain-of-thought" -> chainOfThoughtPrompt;
+            default -> zeroShotPrompt;
         };
     }
 
     private String extractJson(String rawResponse) {
-        if (rawResponse == null || rawResponse.trim().isEmpty()) {
-            log.warn("Raw response is null or empty");
-            return rawResponse;
-        }
+        if (rawResponse == null || rawResponse.trim().isEmpty()) return "";
 
-        String trimmed = rawResponse.trim();
-
-        Pattern markdownPattern = Pattern.compile("```(?:json)?\\s*\\n?(.+?)```", Pattern.DOTALL);
-        Matcher markdownMatcher = markdownPattern.matcher(trimmed);
-        if (markdownMatcher.find()) {
-            return markdownMatcher.group(1).trim();
-        }
+        Pattern pattern = Pattern.compile("```(?:json)?\\s*\\n?(.+?)```", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(rawResponse);
+        if (matcher.find()) return matcher.group(1).trim();
 
         Pattern jsonPattern = Pattern.compile("(\\{.+})", Pattern.DOTALL);
-        Matcher jsonMatcher = jsonPattern.matcher(trimmed);
-        if (jsonMatcher.find()) {
-            return jsonMatcher.group(1).trim();
-        }
+        Matcher jsonMatcher = jsonPattern.matcher(rawResponse);
+        if (jsonMatcher.find()) return jsonMatcher.group(1).trim();
 
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-            return trimmed;
-        }
-
-        log.warn("No JSON pattern found in response. Returning original text.");
-        return rawResponse;
-    }
-
-    public AnalysisResult analyzeForBatch(File sqlFile, PromptStrategy strategy, NoiseLevel noise) {
-        String procedureName = sqlFile.getName().replace(".sql", "");
-        String code = switch (noise) {
-            case CLEAN -> documentService.cleanCommentsService(procedureName);
-            case RAW -> documentService.readRawProcedure(procedureName);
-            case DIRTY -> documentService.readDirtyProcedure(procedureName);
-        };
-
-        BeanOutputConverter<ProcedureDocumentation> outputConverter = new BeanOutputConverter<>(ProcedureDocumentation.class);
-
-        try {
-            String systemPromptContent = new String(systemPrompt.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-
-            Resource selectedPromptResource = choosePromptTemplate(strategy.getType());
-            String promptContent = new String(selectedPromptResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-
-            SystemMessage systemMessage = new SystemMessage(systemPromptContent);
-            PromptTemplate promptTemplate = new PromptTemplate(promptContent);
-
-            Prompt userPrompt = stuffCodeInUserPrompt(code, outputConverter.getFormat(), promptTemplate);
-
-            // CORREÇÃO FINAL: Builder sem o prefixo "with"
-            OllamaOptions options = OllamaOptions.builder()
-                    .temperature(0.1) // era .withTemperature
-                    .format("json")   // era .withFormat
-                    .build();
-
-            Prompt finalMountedPrompt = new Prompt(List.of(systemMessage, userPrompt.getInstructions().get(0)), options);
-
-            ChatResponse response = chatModel.call(finalMountedPrompt);
-
-            TokensData tokens = extractTokensData(response);
-
-            String rawResponse = response.getResult().getOutput().getText();
-            String cleanedJson = extractJson(rawResponse);
-            ProcedureDocumentation doc = outputConverter.convert(cleanedJson);
-
-            return new AnalysisResult(doc, tokens);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to analyze file: " + sqlFile.getName(), e);
-        }
+        return rawResponse.trim();
     }
 }

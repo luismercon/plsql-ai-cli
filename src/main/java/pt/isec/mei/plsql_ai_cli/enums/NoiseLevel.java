@@ -6,9 +6,9 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum NoiseLevel {
-    CLEAN("clean"),
-    RAW("raw"),
-    DIRTY("dirty");
+    CLEAN("clean"), // Código sem comentários
+    RAW("raw"),     // Código original com comentários SPL
+    DIRTY("dirty"); // Código com comentários ruidosos (FakeComments)
 
-    private final String type;
+    private final String level;
 }

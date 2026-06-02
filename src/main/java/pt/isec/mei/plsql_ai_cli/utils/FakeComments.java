@@ -1,8 +1,8 @@
 package pt.isec.mei.plsql_ai_cli.utils;
 
 /**
- * Pool of fake SQL comments to be used for creating "dirty" versions of procedures.
- * These comments follow the same patterns as real PL/SQL comments found in the codebase.
+ * Pool de comentários SQL fictícios para criar versões "dirty" de procedures.
+ * Baseado em padrões reais de Informix SPL e PL/SQL legado.
  */
 public class FakeComments {
 
@@ -65,33 +65,15 @@ public class FakeComments {
             "-- Store temporary results in cache"
     };
 
-    /**
-     * Returns a random fake comment from the pool.
-     * @return A fake comment string
-     */
-    public static String getRandomComment() {
-        int index = (int) (Math.random() * FAKE_COMMENTS.length);
-        return FAKE_COMMENTS[index];
-    }
 
-    /**
-     * Returns a fake comment at a specific index.
-     * @param index The index of the comment to retrieve
-     * @return A fake comment string
-     */
     public static String getCommentAt(int index) {
         if (index >= 0 && index < FAKE_COMMENTS.length) {
             return FAKE_COMMENTS[index];
         }
-        return FAKE_COMMENTS[0]; // Return first comment as fallback
+        return FAKE_COMMENTS[0];
     }
 
-    /**
-     * Returns the total number of fake comments available.
-     * @return The size of the fake comments pool
-     */
     public static int getPoolSize() {
         return FAKE_COMMENTS.length;
     }
 }
-

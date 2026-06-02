@@ -44,3 +44,9 @@ cache/
 
 # Ignore procedures directory
 procedures/
+
+# Ignore logs directory
+logs/
+
+# Ignore bkup directory
+bkp/
